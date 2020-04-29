@@ -1,2 +1,3 @@
-# quickstart-citrix-adc-appfw
-Quickstart code for Citrix WAF
+# citrix-adc-aws-quickstarts
+Development repo for Citrix ADC's AWS quickstart deployments
+
