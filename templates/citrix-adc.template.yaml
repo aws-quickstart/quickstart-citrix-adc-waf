@@ -1,0 +1,275 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description:
+  "This template creates the Citrix ADC with 3 ENIs (management, client, server)
+  and assoicates an EIP on management ENI and an optional EIP on client ENI
+  **WARNING** This template creates AWS resources.
+  You will be billed for the AWS resources used if you create a stack from this template."
+Parameters:
+  CitrixADCImageID:
+    Type: String
+    Default: ""
+    Description: >-
+      AMI ID of Citrix ADC to be provisioned. If left empty, "Citrix ADC VPX - Customer Licensed Version 13.0-41.20
+      (https://aws.amazon.com/marketplace/pp/B00AA01BOE)" is provisioned by default
+  ManagementSecurityGroup:
+    Description: Security Group ID for Citrix ADC Management ENI
+    Type: String
+  ClientSecurityGroup:
+    Description: Security Group ID for Citrix ADC Client ENI
+    Type: String
+  ServerSecurityGroup:
+    Description: Security Group ID for Citrix ADC Server ENI
+    Type: String
+  ManagementPrivateSubnetID:
+    Type: AWS::EC2::Subnet::Id
+    Description: >-
+      Private Subnet ID of an existing subnet dedicated for Management ENI.
+      Note - The CIDR should be different from that of VPC.
+  ClientPublicSubnetID:
+    Type: AWS::EC2::Subnet::Id
+    Description: >-
+      Public Subnet ID of an existing subnet dedicated for Client ENI.
+  ServerPrivateSubnetID:
+    Type: AWS::EC2::Subnet::Id
+    Description: >-
+      Private Subnet ID of an existing subnet dedicated for Server ENI.
+  ManagementPrivateIP:
+    Default: ""
+    Type: String
+    Description: >-
+      [OPTIONAL] Leave empty for automatic assignment. Private IP assigned to the Management ENI (last octet has to be between 5 and 254).
+  ClientPrivateIP:
+    Default: ""
+    Type: String
+    Description: >-
+      [OPTIONAL] Leave empty for automatic assignment. Private IP assigned to the Client ENI (last octet has to be between 5 and 254).
+  ServerPrivateIP:
+    Default: ""
+    Type: String
+    Description: >-
+      [OPTIONAL] Leave empty for automatic assignment. Private IP assigned to the Server ENI (last octet has to be between 5 and 254).
+  ClientENIEIP:
+    Description: Choose 'Yes' to assign EIP for Client ENI
+    Type: String
+    Default: "No"
+    AllowedValues:
+      - "No"
+      - "Yes"
+  ADCInstanceTagName:
+    Description: Tag Name for Citrix ADC
+    Type: String
+  KeyPairName:
+    Description: EC2 key pair name to remotely access ADCs on port 22 (SSH)
+    Type: AWS::EC2::KeyPair::KeyName
+  VPCTenancy:
+    Description: The allowed tenancy of instances launched into the VPC
+    Type: String
+    Default: default
+    AllowedValues:
+      - default
+      - dedicated
+  CitrixNodesProfile:
+    Description: Instance Profile for Citrix ADC
+    Type: String
+  CitrixADCInstanceType:
+    Default: m4.xlarge
+    ConstraintDescription: Must be a valid EC2 instance type.
+    Type: String
+    Description: Citrix ADC instance type
+    AllowedValues:
+      - t2.medium
+      - t2.large
+      - t2.xlarge
+      - t2.2xlarge
+      - m3.large
+      - m3.xlarge
+      - m3.2xlarge
+      - m4.large
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+      - m4.10xlarge
+      - m4.16xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - m5.8xlarge
+      - m5.12xlarge
+      - m5.16xlarge
+      - m5.24xlarge
+      - c4.large
+      - c4.xlarge
+      - c4.2xlarge
+      - c4.4xlarge
+      - c4.8xlarge
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+      - c5.9xlarge
+      - c5.12xlarge
+      - c5.18xlarge
+      - c5.24xlarge
+      - c5n.large
+      - c5n.xlarge
+      - c5n.2xlarge
+      - c5n.4xlarge
+      - c5n.9xlarge
+      - c5n.18xlarge
+
+Conditions:
+  UseClientEIP: !Equals [!Ref ClientENIEIP, "Yes"]
+  UseCitrixADCImageID: !Not
+    - !Equals
+      - !Ref CitrixADCImageID
+      - ""
+  UseManagementPrivateIP: !Not
+    - !Equals
+      - !Ref ManagementPrivateIP
+      - ""
+  UseClientPrivateIP: !Not
+    - !Equals
+      - !Ref ClientPrivateIP
+      - ""
+  UseServerPrivateIP: !Not
+    - !Equals
+      - !Ref ServerPrivateIP
+      - ""
+
+Resources:
+  ManagementENI:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName} PrimaryManagement
+      SubnetId: !Ref ManagementPrivateSubnetID
+      GroupSet:
+        - !Ref ManagementSecurityGroup
+      Description: ENI connected to Primary Management Subnet
+      PrivateIpAddress: !If
+        - UseManagementPrivateIP
+        - !Ref ManagementPrivateIP
+        - !Ref AWS::NoValue
+  ClientENI:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName} PrimaryClient
+      SubnetId: !Ref ClientPublicSubnetID
+      GroupSet:
+        - !Ref ClientSecurityGroup
+      Description: ENI connected to Primary Client Subnet
+      PrivateIpAddress: !If
+        - UseClientPrivateIP
+        - !Ref ClientPrivateIP
+        - !Ref AWS::NoValue
+  ServerENI:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName} PrimaryServer
+      SubnetId: !Ref ServerPrivateSubnetID
+      GroupSet:
+        - !Ref ServerSecurityGroup
+      Description: ENI connected to Primary Server Subnet
+      PrivateIpAddress: !If
+        - UseServerPrivateIP
+        - !Ref ServerPrivateIP
+        - !Ref AWS::NoValue
+  ClientEIP:
+    Condition: UseClientEIP
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  ClientEIPAssociation:
+    Condition: UseClientEIP
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      NetworkInterfaceId: !Ref ClientENI
+      AllocationId: !GetAtt ClientEIP.AllocationId
+  CitrixADCInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName} ${ADCInstanceTagName}
+      ImageId: !If
+        - UseCitrixADCImageID
+        - !Ref CitrixADCImageID
+        - !FindInMap
+          - AWSAMIRegionMap
+          - !Ref AWS::Region
+          - CITRIXADC
+      KeyName: !Ref KeyPairName
+      Tenancy: !Ref VPCTenancy
+      IamInstanceProfile: !Ref CitrixNodesProfile
+      InstanceType: !Ref CitrixADCInstanceType
+      NetworkInterfaces:
+        - DeviceIndex: "0"
+          NetworkInterfaceId: !Ref ManagementENI
+        - DeviceIndex: "1"
+          NetworkInterfaceId: !Ref ClientENI
+        - DeviceIndex: "2"
+          NetworkInterfaceId: !Ref ServerENI
+
+Outputs:
+  CitrixADCInstanceID:
+    Description: Citrix InstanceID
+    Value: !Ref CitrixADCInstance
+  ManagementPrivateNSIP:
+    Description: Management Private IP
+    Value: !GetAtt ManagementENI.PrimaryPrivateIpAddress
+  ClientPublicEIP:
+    Condition: UseClientEIP
+    Description: Client Public EIP
+    Value: !Ref ClientEIP
+  ClientPrivateVIP:
+    Description: Client Private IP
+    Value: !GetAtt ClientENI.PrimaryPrivateIpAddress
+
+Mappings:
+  AWSAMIRegionMap:
+    AMI:
+      CITRIXADC: Citrix NetScaler and CloudBridge Connector 13.0-52.24-64-6779c34e-ab3c-4886-a13d-8348c5683c0a-ami-05e241fd9b61abb3a.4
+    us-east-1:
+      CITRIXADC: ami-09b533ff29f584183
+    us-east-2:
+      CITRIXADC: ami-0c39ab5b0f980fbc7
+    us-west-1:
+      CITRIXADC: ami-0e2f2bf07125f3a58
+    us-west-2:
+      CITRIXADC: ami-02c85edb63cc94a2d
+    us-gov-west-1:
+      CITRIXADC: ami-aa5565cb
+    us-gov-east-1:
+      CITRIXADC: ami-53cf2322
+    ca-central-1:
+      CITRIXADC: ami-0c151ec4da9526433
+    eu-central-1:
+      CITRIXADC: ami-0ea75af9fbca42bf8
+    eu-north-1:
+      CITRIXADC: ami-000d4343d9a1b836f
+    eu-west-1:
+      CITRIXADC: ami-024f27aea6dd58651
+    eu-west-2:
+      CITRIXADC: ami-032d980e120692005
+    eu-west-3:
+      CITRIXADC: ami-00652c30f8b7c3b6e
+    ap-southeast-1:
+      CITRIXADC: ami-056ea24c1d29b4da0
+    ap-southeast-2:
+      CITRIXADC: ami-06483d41dea8e3c05
+    ap-south-1:
+      CITRIXADC: ami-0bdbf33f6b247a9f2
+    ap-northeast-1:
+      CITRIXADC: ami-072697b740c80ac29
+    ap-northeast-2:
+      CITRIXADC: ami-0632be1166d5b93e9
+    sa-east-1:
+      CITRIXADC: ami-0b3a90d94ffcb08c0
