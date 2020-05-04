@@ -34,7 +34,6 @@ Metadata:
       - Label:
           default: Citrix ADC configuration
         Parameters:
-          - CitrixADCImageID
           - KeyPairName
           - CitrixADCInstanceType
           - CitrixADCIAMRole
@@ -48,6 +47,7 @@ Metadata:
       - Label:
           default: Licence Server Details
         Parameters:
+          - CitrixADCImageID
           - ADMIP
       - Label:
           default: License Details
