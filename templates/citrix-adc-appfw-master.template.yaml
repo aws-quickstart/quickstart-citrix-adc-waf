@@ -39,7 +39,6 @@ Metadata:
           default: Bastion host configuration
         Parameters:
           - BastionRequired
-          - NumBastionHosts
 
       - Label:
           default: Citrix ADC configuration
@@ -127,9 +126,6 @@ Metadata:
       BastionRequired:
         default: Is bastion host required?
 
-      NumBastionHosts:
-        default: Number of bastion hosts
-
       VPCTenancy:
         default: VPC tenancy attribute
       RestrictedWebAppCIDR:
@@ -166,13 +162,6 @@ Metadata:
         default: Quick Start S3 key prefix
 
 Parameters:
-  NumBastionHosts:
-    AllowedValues:
-      - "1"
-      - "2"
-    Default: "1"
-    Description: "Not applicable if the above option is `No`. The number of bastion hosts to create. The maximum number is two."
-    Type: String
   CitrixADCImageID:
     Type: String
     Default: ""
@@ -458,9 +447,6 @@ Parameters:
 
 Conditions:
   UseBastion: !Equals [!Ref BastionRequired, "Yes"]
-  2BastionCondition: !And
-    - !Condition UseBastion
-    - !Equals [!Ref NumBastionHosts, "2"]
   UseClientEIP: !Equals [!Ref ClientEIPRequired, "Yes"]
   CreateIAMRole: !Equals [!Ref CitrixADCIAMRole, ""]
 
@@ -505,7 +491,7 @@ Resources:
       Parameters:
         BastionAMIOS: Ubuntu-Server-16.04-LTS-HVM
         KeyPairName: !Ref KeyPairName
-        NumBastionHosts: !Ref NumBastionHosts
+        NumBastionHosts: '1'
         PublicSubnet1ID: !GetAtt VPCStack.Outputs.PublicSubnet1ID
         PublicSubnet2ID: !GetAtt VPCStack.Outputs.PublicSubnet2ID
         QSS3BucketName: !Ref QSS3BucketName
@@ -614,7 +600,7 @@ Outputs:
     Condition: UseBastion
     Description: Elastic IP address for bastion host 1
     Value: !GetAtt BastionStack.Outputs.EIP1
-  LinuxBastionHostEIP2:
-    Condition: 2BastionCondition
-    Description: Elastic IP address for bastion host 2
-    Value: !GetAtt BastionStack.Outputs.EIP2
+#  LinuxBastionHostEIP2:
+#    Condition: 2BastionCondition
+#    Description: Elastic IP address for bastion host 2
+#    Value: !GetAtt BastionStack.Outputs.EIP2
