@@ -3,7 +3,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description:
   "This template deploys a VPC, with 3 subnets (Management, client, server) for 2 Availability Zones.
   It deploys an Internet Gateway, with a default  route on the public subnets.
-  This template also creates a HA pair across Availability Zones with two instance of Citrix ADC:
+  This template also creates a HA pair across Availability Zones with two instance of Citrix WAF:
   3 ENIs associated to 3 VPC subnets (Management, Client, Server) on primary and 3 ENIs associated
   to 3 VPC subnets (Management, Client, Server) on secondary.
   All the resource names created by this CFT will be prefixed with a tagName of the stackname
@@ -41,7 +41,7 @@ Metadata:
           - BastionRequired
 
       - Label:
-          default: Citrix ADC configuration
+          default: Citrix WAF configuration
         Parameters:
           - KeyPairName
           - CitrixADCInstanceType
@@ -54,7 +54,7 @@ Metadata:
           - PooledLicense
 
       - Label:
-          default: Licence Server Details
+          default: Licence Server Details - (Select only when the PooledLicense is selected `Yes`)
         Parameters:
           - CitrixADCImageID
           - ADMIP
@@ -87,7 +87,7 @@ Metadata:
 
     ParameterLabels:
       CitrixADCImageID:
-        default: Citrix ADC AMI ID
+        default: Citrix WAF AMI ID
 
       VPCCIDR:
         default: VPC CIDR
@@ -111,11 +111,11 @@ Metadata:
         default: Secondary Server private subnet CIDR
 
       PrimaryManagementPrivateIP:
-        default: Primary Management private IP
+        default: Primary Management private IP (NSIP)
       PrimaryClientPrivateIP:
-        default: Primary Client private IP
+        default: Primary Client private IP (VIP)
       PrimaryServerPrivateIP:
-        default: Primary Server private IP
+        default: Primary Server private IP (SNIP)
       SecondaryManagementPrivateIP:
         default: Secondary Management private IP
       SecondaryClientPrivateIP:
@@ -129,17 +129,17 @@ Metadata:
       VPCTenancy:
         default: VPC tenancy attribute
       RestrictedWebAppCIDR:
-        default: Remote web traffic CIDR
+        default: Address range to access apps behind the ADCs (via VIP)
       RestrictedSSHCIDR:
-        default: Remote SSH traffic CIDR
+        default: Address range to access Management interfaces
       KeyPairName:
         default: Key pair name
       CitrixADCInstanceType:
-        default: Citrix ADC instance type
+        default: Citrix WAF instance type
       CitrixADCIAMRole:
-        default: Citrix ADC IAM role
+        default: Citrix WAF IAM role
       ClientEIPRequired:
-        default: Should PublicIP(EIP) be assigned to Client side?
+        default: Should PublicIP(EIP) be assigned to Client side (VIP)?
 
       PooledLicense:
         default: Do you want to allocate license from ADM?
@@ -166,9 +166,9 @@ Parameters:
     Type: String
     Default: ""
     Description: >-
-      [Optional] AMI ID of Citrix ADC to be provisioned. If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 
+      [Optional] If you are opting for pooled license below, enter latest BYOL AMI ID here, OR specify AMI ID of Citrix WAF to be provisioned. 
+      If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 
       (https://aws.amazon.com/marketplace/pp/B08286P96W)" is provisioned by default.
-      If you are opting for pooled license below, enter latest BYOL AMI ID here.
   VPCCIDR:
     Description: The CIDR block for the VPC.
     Type: String
@@ -185,10 +185,10 @@ Parameters:
       - default
       - dedicated
   PrimaryAvailabilityZone:
-    Description: Availability Zone for Primary Citrix ADC deployment.
+    Description: Availability Zone for Primary Citrix WAF deployment.
     Type: AWS::EC2::AvailabilityZone::Name
   SecondaryAvailabilityZone:
-    Description: Availability Zone for Secondary Citrix ADC deployment.
+    Description: Availability Zone for Secondary Citrix WAF deployment.
     Type: AWS::EC2::AvailabilityZone::Name
   PrimaryManagementPrivateSubnetCIDR:
     Description: CIDR block for primary management private subnet located in the primary Availability Zone.
@@ -286,7 +286,7 @@ Parameters:
     ConstraintDescription: >-
       Quick Start key prefix can include numbers, lowercase letters, uppercase
       letters, hyphens (-), and forward slash (/).
-    Default: quickstart-citrix-adc-appfw/
+    Default: quickstart-citrix-adc-waf/
     Description: >-
       S3 key prefix for the Quick Start assets. Quick Start key prefix can
       include numbers, lowercase letters, uppercase letters, hyphens (-), and
@@ -297,7 +297,7 @@ Parameters:
     MinLength: 9
     MaxLength: 18
     Description:
-      "A CIDR block that is allowed to access the ADC on tcp ports 80, 443.
+      "A CIDR block that is allowed to access the web apps behind WAF on tcp ports 80, 443.
       We recommend that you use a constrained CIDR range to
       reduce the potential of inbound attacks from unknown IP addresses."
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
@@ -307,7 +307,7 @@ Parameters:
     MinLength: 9
     MaxLength: 18
     Description:
-      "A CIDR block that is allowed to access the bastion host on port 22.
+      "A CIDR block that is allowed to access the bastion host(if present) or WAF management interface on port 22.
       We recommend that you use a constrained CIDR range to
       reduce the potential of inbound attacks from unknown IP addresses."
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
@@ -319,7 +319,9 @@ Parameters:
     Default: m4.xlarge
     ConstraintDescription: Must be a valid EC2 instance type.
     Type: String
-    Description: Citrix ADC instance type.
+    Description:
+      "Note: Please ensure that the instance type opted should align with the instance types
+      available in the AWS marketplace for the region of deployment, else the CFT would fail."
     AllowedValues:
       - t2.medium
       - t2.large
@@ -396,20 +398,14 @@ Parameters:
   PooledEdition:
     Description: "[OPTIONAL] License Edition for Pooled Capacity Licensing Mode"
     Type: String
-    Default: ""
+    Default: Premium
     AllowedValues:
-      - ""
-      - Standard
-      - Advanced
       - Premium
   VCPUEdition:
     Description: "[OPTIONAL] License Edition for vCPU Licensing Mode"
     Type: String
-    Default: ""
+    Default: Premium
     AllowedValues:
-      - ""
-      - Standard
-      - Advanced
       - Premium
   Platform:
     Description: "[OPTIONAL] License Platform"
@@ -417,18 +413,10 @@ Parameters:
     Default: ""
     AllowedValues:
       - ""
-      - VPX-10
-      - VPX-25
       - VPX-200
       - VPX-1000
       - VPX-3000
       - VPX-5000
-      - VPX-8000
-      - VPX-10G
-      - VPX-15G
-      - VPX-25G
-      - VPX-40G
-      - VPX-100G
   BastionRequired:
     Type: String
     Default: "No"
@@ -491,7 +479,7 @@ Resources:
       Parameters:
         BastionAMIOS: Ubuntu-Server-16.04-LTS-HVM
         KeyPairName: !Ref KeyPairName
-        NumBastionHosts: '1'
+        NumBastionHosts: "1"
         PublicSubnet1ID: !GetAtt VPCStack.Outputs.PublicSubnet1ID
         PublicSubnet2ID: !GetAtt VPCStack.Outputs.PublicSubnet2ID
         QSS3BucketName: !Ref QSS3BucketName
@@ -507,6 +495,7 @@ Resources:
       Parameters:
         VPCID: !GetAtt VPCStack.Outputs.VPCID
         VPCTenancy: !Ref VPCTenancy
+        RestrictedSSHCIDR: !Ref RestrictedSSHCIDR
         RestrictedWebAppCIDR: !Ref RestrictedWebAppCIDR
         PrimaryManagementPrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1BID
         PrimaryClientPublicSubnetID: !GetAtt VPCStack.Outputs.PublicSubnet1ID
@@ -562,20 +551,20 @@ Outputs:
     Description: Secondary Server private subnet ID
     Value: !GetAtt VPCStack.Outputs.PrivateSubnet2AID
   ManagementSecurityGroupID:
-    Description: Security group ID for management ADC ENIs
+    Description: Security group ID for management WAF ENIs
     Value: !GetAtt WorkLoadStack.Outputs.ManagementSecurityGroupID
   ClientSecurityGroupID:
-    Description: Security group ID for client ADC ENIs
+    Description: Security group ID for client WAF ENIs
     Value: !GetAtt WorkLoadStack.Outputs.ClientSecurityGroupID
   ServerSecurityGroupID:
-    Description: Security group ID for server ADC ENIs
+    Description: Security group ID for server WAF ENIs
     Value: !GetAtt WorkLoadStack.Outputs.ServerSecurityGroupID
   InstanceProfileName:
     Condition: CreateIAMRole
     Description: Instance profile for ADCs
     Value: !GetAtt WorkLoadStack.Outputs.InstanceProfileName
   PrimaryADCInstanceID:
-    Description: Primary ADC instance ID
+    Description: Primary WAF instance ID
     Value: !GetAtt WorkLoadStack.Outputs.PrimaryADCInstanceID
   PrimaryManagementPrivateNSIP:
     Description: Primary Management private NSIP
@@ -588,7 +577,7 @@ Outputs:
     Description: Primary Client private VIP
     Value: !GetAtt WorkLoadStack.Outputs.PrimaryClientPrivateVIP
   SecondaryADCInstanceID:
-    Description: Secondary ADC instance ID
+    Description: Secondary WAF instance ID
     Value: !GetAtt WorkLoadStack.Outputs.SecondaryADCInstanceID
   SecondaryManagementPrivateNSIP:
     Description: Secondary Management private NSIP
