@@ -1,7 +1,9 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "
-  This template creates a HA pair across Availability Zones with two instance of Citrix WAF:
+Description:
+  "This template deploys a VPC, with 3 subnets (Management, client, server) for 2 Availability Zones.
+  It deploys an Internet Gateway, with a default  route on the public subnets.
+  This template also creates a HA pair across Availability Zones with two instance of Citrix WAF:
   3 ENIs associated to 3 VPC subnets (Management, Client, Server) on primary and 3 ENIs associated
   to 3 VPC subnets (Management, Client, Server) on secondary.
   All the resource names created by this CFT will be prefixed with a tagName of the stackname
@@ -12,18 +14,19 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
-          default: Network configuration
+          default: VPC network configuration
         Parameters:
-          - VPCID
-          - BastionSecurityGroupID
-          - RestrictedSSHCIDR
+          - PrimaryAvailabilityZone
+          - SecondaryAvailabilityZone
+          - VPCCIDR
           - RestrictedWebAppCIDR
-          - PrimaryManagementPrivateSubnetID
-          - PrimaryClientPublicSubnetID
-          - PrimaryServerPrivateSubnetID
-          - SecondaryManagementPrivateSubnetID
-          - SecondaryClientPublicSubnetID
-          - SecondaryServerPrivateSubnetID
+          - RestrictedSSHCIDR
+          - PrimaryManagementPrivateSubnetCIDR
+          - PrimaryClientPublicSubnetCIDR
+          - PrimaryServerPrivateSubnetCIDR
+          - SecondaryManagementPrivateSubnetCIDR
+          - SecondaryClientPublicSubnetCIDR
+          - SecondaryServerPrivateSubnetCIDR
           - PrimaryManagementPrivateIP
           - PrimaryClientPrivateIP
           - PrimaryServerPrivateIP
@@ -33,13 +36,17 @@ Metadata:
           - VPCTenancy
 
       - Label:
+          default: Bastion host configuration
+        Parameters:
+          - BastionRequired
+
+      - Label:
           default: Citrix WAF configuration
         Parameters:
           - KeyPairName
           - CitrixADCInstanceType
           - CitrixADCIAMRole
           - ClientEIPRequired
-          - CitrixADCImageID
 
       - Label:
           default: Pooled Licensing configuration
@@ -49,6 +56,7 @@ Metadata:
       - Label:
           default: Licence Server Details - (Select only when the PooledLicense is selected `Yes`)
         Parameters:
+          - CitrixADCImageID
           - ADMIP
       - Label:
           default: License Details
@@ -81,26 +89,26 @@ Metadata:
       CitrixADCImageID:
         default: Citrix WAF AMI ID
 
-      VPCID:
-        default: VPC ID
-      PrimaryManagementPrivateSubnetID:
-        default: Primary Management private subnet ID
-      PrimaryClientPublicSubnetID:
-        default: Primary Client public subnet ID
-      PrimaryServerPrivateSubnetID:
-        default: Primary Server private subnet ID
+      VPCCIDR:
+        default: VPC CIDR
 
-      RestrictedWebAppCIDR:
-        default: Address range to access apps behind the WAFs (via VIP)
-      RestrictedSSHCIDR:
-        default: Address range to access Management interfaces
+      PrimaryAvailabilityZone:
+        default: Primary Availability Zone
+      PrimaryManagementPrivateSubnetCIDR:
+        default: Primary Management private subnet CIDR
+      PrimaryClientPublicSubnetCIDR:
+        default: Primary Client public subnet CIDR
+      PrimaryServerPrivateSubnetCIDR:
+        default: Primary Server private subnet CIDR
 
-      SecondaryManagementPrivateSubnetID:
-        default: Secondary Management private subnet ID
-      SecondaryClientPublicSubnetID:
-        default: Secondary Client public subnet ID
-      SecondaryServerPrivateSubnetID:
-        default: Secondary Server private subnet ID
+      SecondaryAvailabilityZone:
+        default: Secondary Availability Zone
+      SecondaryManagementPrivateSubnetCIDR:
+        default: Secondary Management private subnet CIDR
+      SecondaryClientPublicSubnetCIDR:
+        default: Secondary Client public subnet CIDR
+      SecondaryServerPrivateSubnetCIDR:
+        default: Secondary Server private subnet CIDR
 
       PrimaryManagementPrivateIP:
         default: Primary Management private IP (NSIP)
@@ -114,11 +122,16 @@ Metadata:
         default: Secondary Client private IP (VIP)
       SecondaryServerPrivateIP:
         default: Secondary Server private IP (SNIP)
-      BastionSecurityGroupID:
-        default: Bastion security group ID
+
+      BastionRequired:
+        default: Is bastion host required?
 
       VPCTenancy:
         default: VPC tenancy attribute
+      RestrictedWebAppCIDR:
+        default: Address range to access apps behind the ADCs (via VIP)
+      RestrictedSSHCIDR:
+        default: Address range to access Management interfaces
       KeyPairName:
         default: Key pair name
       CitrixADCInstanceType:
@@ -126,7 +139,7 @@ Metadata:
       CitrixADCIAMRole:
         default: Citrix WAF IAM role
       ClientEIPRequired:
-        default: Should PublicIP(EIP) be assigned to Client side?
+        default: Should PublicIP(EIP) be assigned to Client side (VIP)?
 
       PooledLicense:
         default: Do you want to allocate license from ADM?
@@ -156,10 +169,14 @@ Parameters:
       [Optional] If you are opting for pooled license below, enter latest BYOL AMI ID here, OR specify AMI ID of Citrix WAF to be provisioned. 
       If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 
       (https://aws.amazon.com/marketplace/pp/B08286P96W)" is provisioned by default.
-
-  VPCID:
-    Type: AWS::EC2::VPC::Id
-    Description: The ID of your existing VPC (e.g., vpc-0343606e).
+  VPCCIDR:
+    Description: The CIDR block for the VPC.
+    Type: String
+    Default: 10.0.0.0/16
+    MinLength: 9
+    MaxLength: 18
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
   VPCTenancy:
     Description: The allowed tenancy of instances launched into the VPC.
     Type: String
@@ -167,57 +184,60 @@ Parameters:
     AllowedValues:
       - default
       - dedicated
-  RestrictedWebAppCIDR:
+  PrimaryAvailabilityZone:
+    Description: Availability Zone for Primary Citrix WAF deployment.
+    Type: AWS::EC2::AvailabilityZone::Name
+  SecondaryAvailabilityZone:
+    Description: Availability Zone for Secondary Citrix WAF deployment.
+    Type: AWS::EC2::AvailabilityZone::Name
+  PrimaryManagementPrivateSubnetCIDR:
+    Description: CIDR block for primary management private subnet located in the primary Availability Zone.
     Type: String
+    Default: 10.0.1.0/24
     MinLength: 9
     MaxLength: 18
-    Description:
-      "A CIDR block that is allowed to access the web apps behind WAF on tcp ports 80, 443.
-      We recommend that you use a constrained CIDR range to
-      reduce the potential of inbound attacks from unknown IP addresses."
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
-  RestrictedSSHCIDR:
+  PrimaryClientPublicSubnetCIDR:
+    Description: CIDR block for primary client public subnet located in the primary Availability Zone.
     Type: String
+    Default: 10.0.2.0/24
     MinLength: 9
     MaxLength: 18
-    Description:
-      "A CIDR block that is allowed to access the bastion host(if present) or WAF management interface on port 22.
-      We recommend that you use a constrained CIDR range to
-      reduce the potential of inbound attacks from unknown IP addresses."
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
-  PrimaryManagementPrivateSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Private subnet ID of an existing subnet dedicated for Primary Management ENI.
-      Note - The CIDR should be different from that of VPC.
-      (VPC Stack Private subnet 1B).
-  PrimaryClientPublicSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Public subnet ID of an existing subnet dedicated for Primary Client ENI.
-      (VPC Stack Public subnet 1).
-  PrimaryServerPrivateSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Private subnet ID of an existing subnet dedicated for Primary Server ENI.
-      (VPC Stack Private subnet 1A).
-  SecondaryManagementPrivateSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Private subnet ID of an existing subnet dedicated for Secondary Management ENI.
-      (VPC Stack Private subnet 2B).
-  SecondaryClientPublicSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Public subnet ID of an existing subnet dedicated for Secondary Client ENI.
-      (VPC Stack Public subnet 2).
-  SecondaryServerPrivateSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Private subnet ID of an existing subnet dedicated for Secondary Server ENI.
-      (VPC Stack Private subnet 2A).
+  PrimaryServerPrivateSubnetCIDR:
+    Description: CIDR block for primary server private subnet located in the primary Availability Zone.
+    Type: String
+    Default: 10.0.3.0/24
+    MinLength: 9
+    MaxLength: 18
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
+  SecondaryManagementPrivateSubnetCIDR:
+    Description: CIDR block for secondary management private subnet located in the secondary Availability Zone.
+    Type: String
+    Default: 10.0.4.0/24
+    MinLength: 9
+    MaxLength: 18
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
+  SecondaryClientPublicSubnetCIDR:
+    Description: CIDR block for secondary client public subnet located in the secondary Availability Zone.
+    Type: String
+    Default: 10.0.5.0/24
+    MinLength: 9
+    MaxLength: 18
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
+  SecondaryServerPrivateSubnetCIDR:
+    Description: CIDR block for secondary server private subnet located in the secondary Availability Zone.
+    Type: String
+    Default: 10.0.6.0/24
+    MinLength: 9
+    MaxLength: 18
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
   PrimaryManagementPrivateIP:
     Default: ""
     Type: String
@@ -248,13 +268,6 @@ Parameters:
     Type: String
     Description: >-
       [Optional] Leave empty for automatic assignment. Private IP assigned to the Secondary Server ENI (last octet has to be between 5 and 254).
-  BastionSecurityGroupID:
-    Type: String
-    Default: ""
-    Description: >-
-      [Optional] The security group ID associated with the bastion host, if present.
-      This will be used to allow access from the bastion hosts to the interfaces belonging to the security groups that will be created for the Citrix WAF HA pair.
-      Effectively the bastion hosts will be able to open connections to all WAF interfaces (management, client and server).
   QSS3BucketName:
     AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
     ConstraintDescription: >-
@@ -279,8 +292,28 @@ Parameters:
       include numbers, lowercase letters, uppercase letters, hyphens (-), and
       forward slash (/).
     Type: String
+  RestrictedWebAppCIDR:
+    Type: String
+    MinLength: 9
+    MaxLength: 18
+    Description:
+      "A CIDR block that is allowed to access the web apps behind WAF on tcp ports 80, 443.
+      We recommend that you use a constrained CIDR range to
+      reduce the potential of inbound attacks from unknown IP addresses."
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
+  RestrictedSSHCIDR:
+    Type: String
+    MinLength: 9
+    MaxLength: 18
+    Description:
+      "A CIDR block that is allowed to access the bastion host(if present) or WAF management interface on port 22.
+      We recommend that you use a constrained CIDR range to
+      reduce the potential of inbound attacks from unknown IP addresses."
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
   KeyPairName:
-    Description: EC2 key pair name to remotely access WAFs on port 22 (SSH).
+    Description: EC2 key pair name to remotely access ADCs on port 22 (SSH).
     Type: AWS::EC2::KeyPair::KeyName
   CitrixADCInstanceType:
     Default: m4.xlarge
@@ -331,7 +364,7 @@ Parameters:
       - c5n.9xlarge
       - c5n.18xlarge
   CitrixADCIAMRole:
-    Description: "[OPTIONAL] IAM Role ARN required for Citrix WAF"
+    Description: "[OPTIONAL] If left empty, CFT will create required IAMRole"
     Type: String
     Default: ""
 
@@ -384,6 +417,14 @@ Parameters:
       - VPX-1000
       - VPX-3000
       - VPX-5000
+  BastionRequired:
+    Type: String
+    Default: "No"
+    Description: Select "Yes" if required
+    AllowedValues:
+      - "No"
+      - "Yes"
+
   ClientEIPRequired:
     Type: String
     Default: "No"
@@ -393,98 +434,90 @@ Parameters:
       - "Yes"
 
 Conditions:
-  CreateIAMRole: !Equals [!Ref CitrixADCIAMRole, ""]
+  UseBastion: !Equals [!Ref BastionRequired, "Yes"]
   UseClientEIP: !Equals [!Ref ClientEIPRequired, "Yes"]
+  CreateIAMRole: !Equals [!Ref CitrixADCIAMRole, ""]
 
 Resources:
-  SecurityGroupStack:
+  VPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub >-
-        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}templates/security-group.template.yaml
+        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template
       Parameters:
-        VPCID: !Ref VPCID
-        RestrictedWebAppCIDR: !Ref RestrictedWebAppCIDR
-        RestrictedSSHCIDR: !Ref RestrictedSSHCIDR
-        BastionSecurityGroupID: !Ref BastionSecurityGroupID
-
-  IAMRoleStack:
-    Condition: CreateIAMRole
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub >-
-        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}templates/iam.template.yaml
-
-  PrimaryADCInstance:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub >-
-        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}templates/citrix-adc.template.yaml
-      Parameters:
-        CitrixADCImageID: !Ref CitrixADCImageID
-        ManagementSecurityGroup: !GetAtt SecurityGroupStack.Outputs.ManagementSecurityGroupID
-        ClientSecurityGroup: !GetAtt SecurityGroupStack.Outputs.ClientSecurityGroupID
-        ServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.ServerSecurityGroupID
-        ManagementPrivateSubnetID: !Ref PrimaryManagementPrivateSubnetID
-        ClientPublicSubnetID: !Ref PrimaryClientPublicSubnetID
-        ServerPrivateSubnetID: !Ref PrimaryServerPrivateSubnetID
-        ManagementPrivateIP: !Ref PrimaryManagementPrivateIP
-        ClientPrivateIP: !Ref PrimaryClientPrivateIP
-        ServerPrivateIP: !Ref PrimaryServerPrivateIP
-        ClientENIEIP: !Ref ClientEIPRequired
-        ADCInstanceTagName: Primary
-        KeyPairName: !Ref KeyPairName
+        NumberOfAZs: "2"
+        AvailabilityZones: !Join
+          - ","
+          - - !Ref PrimaryAvailabilityZone
+            - !Ref SecondaryAvailabilityZone
+        VPCCIDR: !Ref VPCCIDR
+        PublicSubnet1CIDR: !Ref PrimaryClientPublicSubnetCIDR
+        PublicSubnet2CIDR: !Ref SecondaryClientPublicSubnetCIDR
+        CreatePrivateSubnets: "true"
+        PrivateSubnet1ACIDR: !Ref PrimaryServerPrivateSubnetCIDR
+        PrivateSubnet2ACIDR: !Ref SecondaryServerPrivateSubnetCIDR
+        CreateAdditionalPrivateSubnets: "true"
+        PrivateSubnet1BCIDR: !Ref PrimaryManagementPrivateSubnetCIDR
+        PrivateSubnet2BCIDR: !Ref SecondaryManagementPrivateSubnetCIDR
         VPCTenancy: !Ref VPCTenancy
-        CitrixNodesProfile: !If
-          - CreateIAMRole
-          - !GetAtt IAMRoleStack.Outputs.CitrixNodesProfile
-          - !Ref CitrixADCIAMRole
-        CitrixADCInstanceType: !Ref CitrixADCInstanceType
 
-  SecondaryADCInstance:
+  DeleteServersideNATGWSRoutetack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub >-
-        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}templates/citrix-adc.template.yaml
+        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}templates/update-serverside-route-table.template.yaml
       Parameters:
-        CitrixADCImageID: !Ref CitrixADCImageID
-        ManagementSecurityGroup: !GetAtt SecurityGroupStack.Outputs.ManagementSecurityGroupID
-        ClientSecurityGroup: !GetAtt SecurityGroupStack.Outputs.ClientSecurityGroupID
-        ServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.ServerSecurityGroupID
-        ManagementPrivateSubnetID: !Ref SecondaryManagementPrivateSubnetID
-        ClientPublicSubnetID: !Ref SecondaryClientPublicSubnetID
-        ServerPrivateSubnetID: !Ref SecondaryServerPrivateSubnetID
-        ManagementPrivateIP: !Ref SecondaryManagementPrivateIP
-        ClientPrivateIP: !Ref SecondaryClientPrivateIP
-        ServerPrivateIP: !Ref SecondaryServerPrivateIP
-        ClientENIEIP: "No"
-        ADCInstanceTagName: Secondary
+        PrimaryPrivateServerSubnetRouteTableID: !GetAtt VPCStack.Outputs.PrivateSubnet1ARouteTable
+        SecondaryPrivateServerSubnetRouteTableID: !GetAtt VPCStack.Outputs.PrivateSubnet2ARouteTable
+
+  BastionStack:
+    Condition: UseBastion
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub >-
+        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template
+      Parameters:
+        BastionAMIOS: Ubuntu-Server-16.04-LTS-HVM
         KeyPairName: !Ref KeyPairName
-        VPCTenancy: !Ref VPCTenancy
-        CitrixNodesProfile: !If
-          - CreateIAMRole
-          - !GetAtt IAMRoleStack.Outputs.CitrixNodesProfile
-          - !Ref CitrixADCIAMRole
-        CitrixADCInstanceType: !Ref CitrixADCInstanceType
-
-  LambdaHAAZStack:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub >-
-        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}templates/lambda-helper-appfw.template.yaml
-      Parameters:
-        PrimaryInstanceID: !GetAtt PrimaryADCInstance.Outputs.CitrixADCInstanceID
-        PrimaryManagementPrivateIP: !GetAtt PrimaryADCInstance.Outputs.ManagementPrivateNSIP
-        PrimaryClientPrivateIP: !GetAtt PrimaryADCInstance.Outputs.ClientPrivateVIP
-        PrimaryClientPublicSubnetID: !Ref PrimaryClientPublicSubnetID
-        SecondaryInstanceID: !GetAtt SecondaryADCInstance.Outputs.CitrixADCInstanceID
-        SecondaryManagementPrivateIP: !GetAtt SecondaryADCInstance.Outputs.ManagementPrivateNSIP
-        SecondaryClientPrivateIP: !GetAtt SecondaryADCInstance.Outputs.ClientPrivateVIP
+        NumBastionHosts: "1"
+        PublicSubnet1ID: !GetAtt VPCStack.Outputs.PublicSubnet1ID
+        PublicSubnet2ID: !GetAtt VPCStack.Outputs.PublicSubnet2ID
         QSS3BucketName: !Ref QSS3BucketName
-        QSS3KeyPrefix: !Ref QSS3KeyPrefix
-        ManagementSecurityGroupID: !GetAtt SecurityGroupStack.Outputs.ManagementSecurityGroupID
-        PrimaryManagementPrivateSubnetID: !Ref PrimaryManagementPrivateSubnetID
-        SecondaryManagementPrivateSubnetID: !Ref SecondaryManagementPrivateSubnetID
+        QSS3KeyPrefix: !Sub ${QSS3KeyPrefix}submodules/quickstart-linux-bastion/
+        RemoteAccessCIDR: !Ref RestrictedSSHCIDR
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
+
+  WorkLoadStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub >-
+        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}templates/citrix-adc-waf-workload.template.yaml
+      Parameters:
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
+        VPCTenancy: !Ref VPCTenancy
+        RestrictedSSHCIDR: !Ref RestrictedSSHCIDR
+        RestrictedWebAppCIDR: !Ref RestrictedWebAppCIDR
+        PrimaryManagementPrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1BID
+        PrimaryClientPublicSubnetID: !GetAtt VPCStack.Outputs.PublicSubnet1ID
+        PrimaryServerPrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
+        SecondaryManagementPrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet2BID
+        SecondaryClientPublicSubnetID: !GetAtt VPCStack.Outputs.PublicSubnet2ID
+        SecondaryServerPrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet2AID
+        PrimaryManagementPrivateIP: !Ref PrimaryManagementPrivateIP
+        PrimaryClientPrivateIP: !Ref PrimaryClientPrivateIP
+        PrimaryServerPrivateIP: !Ref PrimaryServerPrivateIP
+        SecondaryManagementPrivateIP: !Ref SecondaryManagementPrivateIP
+        SecondaryClientPrivateIP: !Ref SecondaryClientPrivateIP
+        SecondaryServerPrivateIP: !Ref SecondaryServerPrivateIP
+        BastionSecurityGroupID: !If
+          - UseBastion
+          - !GetAtt BastionStack.Outputs.BastionSecurityGroupID
+          - ""
+        CitrixADCImageID: !Ref CitrixADCImageID
+        KeyPairName: !Ref KeyPairName
+        CitrixADCIAMRole: !Ref CitrixADCIAMRole
+        ClientEIPRequired: !Ref ClientEIPRequired
+        CitrixADCInstanceType: !Ref CitrixADCInstanceType
         PooledLicense: !Ref PooledLicense
         ADMIP: !Ref ADMIP
         LicensingMode: !Ref LicensingMode
@@ -492,42 +525,71 @@ Resources:
         PooledEdition: !Ref PooledEdition
         Platform: !Ref Platform
         VCPUEdition: !Ref VCPUEdition
-        PrimaryServerPrivateSubnetID: !Ref PrimaryServerPrivateSubnetID
-        SecondaryServerPrivateSubnetID: !Ref SecondaryServerPrivateSubnetID
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
 
 Outputs:
+  VPCID:
+    Description: VPC ID
+    Value: !GetAtt VPCStack.Outputs.VPCID
+  PrimaryManagementPrivateSubnetID:
+    Description: Primary Management private subnet ID
+    Value: !GetAtt VPCStack.Outputs.PrivateSubnet1BID
+  PrimaryClientPublicSubnetID:
+    Description: Primary Client public subnet ID
+    Value: !GetAtt VPCStack.Outputs.PublicSubnet1ID
+  PrimaryServerPrivateSubnetID:
+    Description: Primary Server private subnet ID
+    Value: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
+  SecondaryManagementPrivateSubnetID:
+    Description: Secondary Management private subnet ID
+    Value: !GetAtt VPCStack.Outputs.PrivateSubnet2BID
+  SecondaryClientPublicSubnetID:
+    Description: Secondary Client public subnet ID
+    Value: !GetAtt VPCStack.Outputs.PublicSubnet2ID
+  SecondaryServerPrivateSubnetID:
+    Description: Secondary Server private subnet ID
+    Value: !GetAtt VPCStack.Outputs.PrivateSubnet2AID
   ManagementSecurityGroupID:
     Description: Security group ID for management WAF ENIs
-    Value: !GetAtt SecurityGroupStack.Outputs.ManagementSecurityGroupID
+    Value: !GetAtt WorkLoadStack.Outputs.ManagementSecurityGroupID
   ClientSecurityGroupID:
     Description: Security group ID for client WAF ENIs
-    Value: !GetAtt SecurityGroupStack.Outputs.ClientSecurityGroupID
+    Value: !GetAtt WorkLoadStack.Outputs.ClientSecurityGroupID
   ServerSecurityGroupID:
     Description: Security group ID for server WAF ENIs
-    Value: !GetAtt SecurityGroupStack.Outputs.ServerSecurityGroupID
+    Value: !GetAtt WorkLoadStack.Outputs.ServerSecurityGroupID
   InstanceProfileName:
     Condition: CreateIAMRole
     Description: Instance profile for ADCs
-    Value: !GetAtt IAMRoleStack.Outputs.CitrixNodesProfile
+    Value: !GetAtt WorkLoadStack.Outputs.InstanceProfileName
   PrimaryADCInstanceID:
     Description: Primary WAF instance ID
-    Value: !GetAtt PrimaryADCInstance.Outputs.CitrixADCInstanceID
+    Value: !GetAtt WorkLoadStack.Outputs.PrimaryADCInstanceID
   PrimaryManagementPrivateNSIP:
     Description: Primary Management private NSIP
-    Value: !GetAtt PrimaryADCInstance.Outputs.ManagementPrivateNSIP
+    Value: !GetAtt WorkLoadStack.Outputs.PrimaryManagementPrivateNSIP
   PrimaryClientPublicEIP:
     Condition: UseClientEIP
     Description: Primary Client public EIP
-    Value: !GetAtt PrimaryADCInstance.Outputs.ClientPublicEIP
+    Value: !GetAtt WorkLoadStack.Outputs.PrimaryClientPublicEIP
   PrimaryClientPrivateVIP:
     Description: Primary Client private VIP
-    Value: !GetAtt PrimaryADCInstance.Outputs.ClientPrivateVIP
+    Value: !GetAtt WorkLoadStack.Outputs.PrimaryClientPrivateVIP
   SecondaryADCInstanceID:
     Description: Secondary WAF instance ID
-    Value: !GetAtt SecondaryADCInstance.Outputs.CitrixADCInstanceID
+    Value: !GetAtt WorkLoadStack.Outputs.SecondaryADCInstanceID
   SecondaryManagementPrivateNSIP:
     Description: Secondary Management private NSIP
-    Value: !GetAtt SecondaryADCInstance.Outputs.ManagementPrivateNSIP
+    Value: !GetAtt WorkLoadStack.Outputs.SecondaryManagementPrivateNSIP
   SecondaryClientPrivateVIP:
     Description: Secondary Client private VIP
-    Value: !GetAtt SecondaryADCInstance.Outputs.ClientPrivateVIP
+    Value: !GetAtt WorkLoadStack.Outputs.SecondaryClientPrivateVIP
+  LinuxBastionHostEIP1:
+    Condition: UseBastion
+    Description: Elastic IP address for bastion host 1
+    Value: !GetAtt BastionStack.Outputs.EIP1
+#  LinuxBastionHostEIP2:
+#    Condition: 2BastionCondition
+#    Description: Elastic IP address for bastion host 2
+#    Value: !GetAtt BastionStack.Outputs.EIP2

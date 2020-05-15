@@ -10,13 +10,6 @@ Parameters:
   PrimaryManagementPrivateIP:
     Description: Primary Management Private IP
     Type: String
-  PrimaryClientPrivateIP:
-    Description: Primary Client Private IP
-    Type: String
-  PrimaryClientPublicSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Public Subnet ID of an existing subnet dedicated for Primary Client ENI.
   ManagementSecurityGroupID:
     Type: String
   PrimaryManagementPrivateSubnetID:
@@ -27,31 +20,12 @@ Parameters:
     Type: AWS::EC2::Subnet::Id
     Description: >-
       Private Subnet ID of an existing subnet dedicated for Secondary Management ENI.
-  PrimaryServerPrivateSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Private Subnet ID of an existing subnet dedicated for Primary Server ENI.
-  SecondaryServerPrivateSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Private Subnet ID of an existing subnet dedicated for Secondary Server ENI.
   SecondaryInstanceID:
     Description: Secondary InstanceID
     Type: String
   SecondaryManagementPrivateIP:
     Description: Secondary Management Private IP
     Type: String
-  SecondaryClientPrivateIP:
-    Description: Secondary Client Private IP
-    Type: String
-
-  PooledLicense:
-    Description: Select 'Yes' to allocate license via ADM
-    Type: String
-    Default: "No"
-    AllowedValues:
-      - "No"
-      - "Yes"
 
   LicensingMode:
     Description: "[OPTIONAL] Select the Licensing Mode"
@@ -100,7 +74,6 @@ Parameters:
     ConstraintDescription: >-
       Quick Start bucket name can include numbers, lowercase letters, uppercase
       letters, and hyphens (-). It cannot start or end with a hyphen (-).
-    Default: aws-quickstart
     Description: >-
       S3 bucket name for the Quick Start assets. This bucket name can include
       numbers, lowercase letters, uppercase letters, and hyphens (-), but should
@@ -122,105 +95,7 @@ Parameters:
     Type: String
 
 Resources:
-  LambdaZipsBucket:
-    Type: AWS::S3::Bucket
-  CopyZips:
-    Type: Custom::CopyZips
-    Properties:
-      ServiceToken: !GetAtt CopyZipsFunction.Arn
-      DestBucket: !Ref LambdaZipsBucket
-      SourceBucket: !Ref QSS3BucketName
-      Prefix: !Ref QSS3KeyPrefix
-      Objects:
-        - functions/packages/appfw/lambda-appfw.zip
-  CopyZipsRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Path: /
-      Policies:
-        - PolicyName: lambda-copier
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                Resource:
-                  - !Sub "arn:aws:s3:::${QSS3BucketName}/${QSS3KeyPrefix}*"
-              - Effect: Allow
-                Action:
-                  - s3:PutObject
-                  - s3:DeleteObject
-                Resource:
-                  - !Sub "arn:aws:s3:::${LambdaZipsBucket}/${QSS3KeyPrefix}*"
-  CopyZipsFunction:
-    Type: AWS::Lambda::Function
-    Properties:
-      Description: Copies objects from a source S3 bucket to a destination
-      Handler: index.handler
-      Runtime: python2.7
-      Role: !GetAtt CopyZipsRole.Arn
-      Timeout: 240
-      Code:
-        ZipFile: |
-          import json
-          import logging
-          import threading
-          import boto3
-          import cfnresponse
-          def copy_objects(source_bucket, dest_bucket, prefix, objects):
-              s3 = boto3.client('s3')
-              for o in objects:
-                  key = prefix + o
-                  copy_source = {
-                      'Bucket': source_bucket,
-                      'Key': key
-                  }
-                  print('copy_source: %s' % copy_source)
-                  print('dest_bucket = %s'%dest_bucket)
-                  print('key = %s' %key)
-                  s3.copy_object(CopySource=copy_source, Bucket=dest_bucket,
-                        Key=key)
-          def delete_objects(bucket, prefix, objects):
-              s3 = boto3.client('s3')
-              objects = {'Objects': [{'Key': prefix + o} for o in objects]}
-              s3.delete_objects(Bucket=bucket, Delete=objects)
-          def timeout(event, context):
-              logging.error('Execution is about to time out, sending failure response to CloudFormation')
-              cfnresponse.send(event, context, cfnresponse.FAILED, {}, None)
-          def handler(event, context):
-              # make sure we send a failure to CloudFormation if the function
-              # is going to timeout
-              timer = threading.Timer((context.get_remaining_time_in_millis()
-                        / 1000.00) - 0.5, timeout, args=[event, context])
-              timer.start()
-              print('Received event: %s' % json.dumps(event))
-              status = cfnresponse.SUCCESS
-              try:
-                  source_bucket = event['ResourceProperties']['SourceBucket']
-                  dest_bucket = event['ResourceProperties']['DestBucket']
-                  prefix = event['ResourceProperties']['Prefix']
-                  objects = event['ResourceProperties']['Objects']
-                  if event['RequestType'] == 'Delete':
-                      delete_objects(dest_bucket, prefix, objects)
-                  else:
-                      copy_objects(source_bucket, dest_bucket, prefix, objects)
-              except Exception as e:
-                  logging.error('Exception: %s' % e, exc_info=True)
-                  status = cfnresponse.FAILED
-              finally:
-                  timer.cancel()
-                  cfnresponse.send(event, context, status, {}, None)
-  LambdaExecutionRole:
+  PooledLicenseRole:
     Type: AWS::IAM::Role
     Properties:
       Tags:
@@ -274,20 +149,19 @@ Resources:
                   - "ec2:ResetNetworkInterfaceAttribute"
                 Resource: "*"
                 Effect: Allow
-  ConfigureHAFunction:
-    DependsOn: CopyZips
+  ConfigurePooledLicenseFunction:
     Type: AWS::Lambda::Function
     Properties:
       Tags:
         - Key: Name
           Value: !Sub ${AWS::StackName} LambdaFunction
       Code:
-        S3Bucket: !Ref LambdaZipsBucket
-        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/appfw/lambda-appfw.zip
-      Handler: lambda-appfw.lambda_handler
+        S3Bucket: !Ref QSS3BucketName
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/waf/lambda-waf.zip
+      Handler: lambda_pooled_license.lambda_handler
       Runtime: python3.6
       Timeout: 900
-      Role: !GetAtt LambdaExecutionRole.Arn
+      Role: !GetAtt PooledLicenseRole.Arn
       VpcConfig:
         SubnetIds:
           - !Ref PrimaryManagementPrivateSubnetID
@@ -295,19 +169,13 @@ Resources:
         SecurityGroupIds:
           - !Ref ManagementSecurityGroupID
   ConfigureLambda:
-    Type: Custom::LambdaHAAZ
+    Type: Custom::LambdaPooledLicense
     Properties:
-      ServiceToken: !GetAtt ConfigureHAFunction.Arn
+      ServiceToken: !GetAtt ConfigurePooledLicenseFunction.Arn
       PrimaryADCInstanceID: !Ref PrimaryInstanceID
       PrimaryADCPrivateNSIP: !Ref PrimaryManagementPrivateIP
-      PrimaryADCPrivateVIP: !Ref PrimaryClientPrivateIP
-      PrimaryADCVIPPublicSubnetID: !Ref PrimaryClientPublicSubnetID
-      PrimaryADCServerPrivateSubnetID: !Ref PrimaryServerPrivateSubnetID
       SecondaryADCInstanceID: !Ref SecondaryInstanceID
       SecondaryADCPrivateNSIP: !Ref SecondaryManagementPrivateIP
-      SecondaryADCPrivateVIP: !Ref SecondaryClientPrivateIP
-      SecondaryADCServerPrivateSubnetID: !Ref SecondaryServerPrivateSubnetID
-      PooledLicense: !Ref PooledLicense
       ADMIP: !Ref ADMIP
       LicensingMode: !Ref LicensingMode
       Bandwidth: !Ref Bandwidth
