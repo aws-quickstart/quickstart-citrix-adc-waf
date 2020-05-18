@@ -1,0 +1,184 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: "This template creates lambda function required to configure 2 ADCs in HA pair across Availability Zones"
+
+Parameters:
+  PrimaryInstanceID:
+    Description: Primary ADC Instance ID
+    Type: String
+  PrimaryManagementPrivateIP:
+    Description: Primary Management Private IP
+    Type: String
+  ManagementSecurityGroupID:
+    Type: String
+  PrimaryManagementPrivateSubnetID:
+    Type: AWS::EC2::Subnet::Id
+    Description: >-
+      Private Subnet ID of an existing subnet dedicated for Primary Management ENI.
+  SecondaryManagementPrivateSubnetID:
+    Type: AWS::EC2::Subnet::Id
+    Description: >-
+      Private Subnet ID of an existing subnet dedicated for Secondary Management ENI.
+  SecondaryInstanceID:
+    Description: Secondary InstanceID
+    Type: String
+  SecondaryManagementPrivateIP:
+    Description: Secondary Management Private IP
+    Type: String
+
+  LicensingMode:
+    Description: "[OPTIONAL] Select the Licensing Mode"
+    Type: String
+    Default: ""
+    AllowedValues:
+      - ""
+      - "Pooled-Licensing"
+      - "CICO-Licensing"
+      - "CPU-Licensing"
+  ADMIP:
+    Description: "[OPTIONAL] Reachable ADM / ADM Agent IP"
+    Type: String
+    Default: ""
+  Bandwidth:
+    Description: >-
+      Initial bandwidth of the license in Mbps to be allocated after BYOL ADCs are created. Should be multiple of 10 Mbps.
+       Default is 0 Mbps
+    Type: Number
+    Default: 0
+  PooledEdition:
+    Description: "[OPTIONAL] License Edition for Pooled Capacity Licensing Mode"
+    Type: String
+    Default: Premium
+    AllowedValues:
+      - Premium
+  VCPUEdition:
+    Description: "[OPTIONAL] License Edition for vCPU Licensing Mode"
+    Type: String
+    Default: Premium
+    AllowedValues:
+      - Premium
+  Platform:
+    Description: "[OPTIONAL] License Platform"
+    Type: String
+    Default: ""
+    AllowedValues:
+      - ""
+      - VPX-200
+      - VPX-1000
+      - VPX-3000
+      - VPX-5000
+
+  QSS3BucketName:
+    AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
+    ConstraintDescription: >-
+      Quick Start bucket name can include numbers, lowercase letters, uppercase
+      letters, and hyphens (-). It cannot start or end with a hyphen (-).
+    Description: >-
+      S3 bucket name for the Quick Start assets. This bucket name can include
+      numbers, lowercase letters, uppercase letters, and hyphens (-), but should
+      not start or end with a hyphen. You can specify your own bucket if you
+      copy all of the assets and submodules into it, if you want to override the
+      Quick Start behavior for your specific implementation.
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: "^[0-9a-zA-Z-/]*/$"
+    ConstraintDescription: >-
+      Quick Start key prefix can include numbers, lowercase letters, uppercase
+      letters, hyphens (-), and forward slash (/).
+    Default: quickstart-citrix-adc-waf/
+    Description: >-
+      [Note] The QSS3KeyPrefix should have to end with forward slash (/).
+      S3 key prefix for the Quick Start assets. Quick Start key prefix can
+      include numbers, lowercase letters, uppercase letters, hyphens (-), and
+      forward slash (/).
+    Type: String
+
+Resources:
+  PooledLicenseRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName} LambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: lambdalogtocloudwatch
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                  - "logs:CreateExportTask"
+                  - "logs:DescribeExportTask"
+                Resource: "arn:aws:logs:*:*:*"
+        - PolicyName: lambdaallowreadec2
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "ec2:DescribeInstances"
+                  - "ec2:DescribeNetworkInterfaces"
+                  - "ec2:DescribeSubnets"
+                  - "ec2:DescribeVpcs"
+                  - "ec2:DescribeAvailabilityZones"
+                  - "ec2:DescribeInstanceStatus"
+                Resource: "*"
+                Effect: Allow
+        - PolicyName: lambdaallowvpcaccessexecution
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "ec2:CreateNetworkInterface"
+                  - "ec2:DeleteNetworkInterface"
+                  - "ec2:AttachNetworkInterface"
+                  - "ec2:DetachNetworkInterface"
+                  - "ec2:ModifyNetworkInterfaceAttribute"
+                  - "ec2:ResetNetworkInterfaceAttribute"
+                Resource: "*"
+                Effect: Allow
+  ConfigurePooledLicenseFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName} LambdaFunction
+      Code:
+        S3Bucket: !Ref QSS3BucketName
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/waf/lambda-waf.zip
+      Handler: lambda_pooled_license.lambda_handler
+      Runtime: python3.6
+      Timeout: 900
+      Role: !GetAtt PooledLicenseRole.Arn
+      VpcConfig:
+        SubnetIds:
+          - !Ref PrimaryManagementPrivateSubnetID
+          - !Ref SecondaryManagementPrivateSubnetID
+        SecurityGroupIds:
+          - !Ref ManagementSecurityGroupID
+  ConfigureLambda:
+    Type: Custom::LambdaPooledLicense
+    Properties:
+      ServiceToken: !GetAtt ConfigurePooledLicenseFunction.Arn
+      PrimaryADCInstanceID: !Ref PrimaryInstanceID
+      PrimaryADCPrivateNSIP: !Ref PrimaryManagementPrivateIP
+      SecondaryADCInstanceID: !Ref SecondaryInstanceID
+      SecondaryADCPrivateNSIP: !Ref SecondaryManagementPrivateIP
+      ADMIP: !Ref ADMIP
+      LicensingMode: !Ref LicensingMode
+      Bandwidth: !Ref Bandwidth
+      PooledEdition: !Ref PooledEdition
+      Platform: !Ref Platform
+      VCPUEdition: !Ref VCPUEdition
