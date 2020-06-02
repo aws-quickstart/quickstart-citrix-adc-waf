@@ -89,7 +89,8 @@ class HTTPNitro():
             logger.error('GET failed: {}'.format(r.text))
             return False
 
-    def do_post(self, resource, data, id=None, action=None):
+    def do_post(self, data, id=None, action=None):
+        resource = list(data)[0]
         url = self.construct_url(resource, id, action)
         logger.debug('POST {}'.format(url))
         logger.debug('POST data: {}'.format(json.dumps(data, indent=4)))
@@ -109,7 +110,8 @@ class HTTPNitro():
             logger.error('POST failed: {}'.format(r.text))
             return False
 
-    def do_put(self, resource, data, id=None, action=None):
+    def do_put(self, data, id=None, action=None):
+        resource = list(data)[0]
         url = self.construct_url(resource, id, action)
         logger.debug('PUT {}'.format(url))
         logger.debug('PUT data: {}'.format(json.dumps(data, indent=4)))

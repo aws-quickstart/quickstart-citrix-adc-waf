@@ -156,10 +156,7 @@ Parameters:
     Type: String
     Default: ""
     Description: >-
-      [Optional] If you are opting for pooled license below, enter latest BYOL AMI ID here, OR specify AMI ID of Citrix WAF to be provisioned. 
-      If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 
-      (https://aws.amazon.com/marketplace/pp/B08286P96W)" is provisioned by default.
-
+      [Optional] Specify AMI ID of Citrix WAF to be provisioned. If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (https://aws.amazon.com/marketplace/pp/B08286P96W)" is provisioned by default. Or, If you are opting for `pooled license` below, enter latest BYOL AMI ID here.
   VPCID:
     Type: AWS::EC2::VPC::Id
     Description: The ID of your existing VPC (e.g., vpc-0343606e).
@@ -272,8 +269,8 @@ Parameters:
       Quick Start behavior for your specific implementation.
     Type: String
   QSS3BucketRegion:
-    Default: 'us-east-1'
-    Description: 'The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.'
+    Default: "us-east-1"
+    Description: The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.'
     Type: String
   QSS3KeyPrefix:
     AllowedPattern: "^[0-9a-zA-Z-/]*/$"
@@ -338,7 +335,7 @@ Parameters:
       - c5n.9xlarge
       - c5n.18xlarge
   CitrixADCIAMRole:
-    Description: "[OPTIONAL] IAM Role ARN required for Citrix WAF"
+    Description: "[OPTIONAL] If left empty, CFT will create required IAMRole. Refer https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/prerequisites.html for more details"
     Type: String
     Default: ""
 
@@ -393,14 +390,14 @@ Parameters:
       - VPX-5000
   ClientEIPRequired:
     Type: String
-    Default: "No"
+    Default: "Yes"
     Description: Select "Yes" if required. Otherwise, you can assign yourself after the deployment.
     AllowedValues:
       - "No"
       - "Yes"
 
 Conditions:
-  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, "aws-quickstart"]
   CreateIAMRole: !Equals [!Ref CitrixADCIAMRole, ""]
   UseClientEIP: !Equals [!Ref ClientEIPRequired, "Yes"]
   UsePooledLicense: !Equals [!Ref PooledLicense, "Yes"]
@@ -410,9 +407,15 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-      - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/security-group.template.yaml
-      - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/security-group.template.yaml
+        - S3Region:
+            !If [UsingDefaultBucket, !Ref "AWS::Region", !Ref QSS3BucketRegion]
+          S3Bucket:
+            !If [
+              UsingDefaultBucket,
+              !Sub "${QSS3BucketName}-${AWS::Region}",
+              !Ref QSS3BucketName,
+            ]
       Parameters:
         VPCID: !Ref VPCID
         RestrictedWebAppCIDR: !Ref RestrictedWebAppCIDR
@@ -424,17 +427,29 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-      - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/iam.template.yaml
-      - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/iam.template.yaml
+        - S3Region:
+            !If [UsingDefaultBucket, !Ref "AWS::Region", !Ref QSS3BucketRegion]
+          S3Bucket:
+            !If [
+              UsingDefaultBucket,
+              !Sub "${QSS3BucketName}-${AWS::Region}",
+              !Ref QSS3BucketName,
+            ]
 
   PrimaryADCInstance:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-      - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/citrix-adc.template.yaml
-      - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/citrix-adc.template.yaml
+        - S3Region:
+            !If [UsingDefaultBucket, !Ref "AWS::Region", !Ref QSS3BucketRegion]
+          S3Bucket:
+            !If [
+              UsingDefaultBucket,
+              !Sub "${QSS3BucketName}-${AWS::Region}",
+              !Ref QSS3BucketName,
+            ]
       Parameters:
         CitrixADCImageID: !Ref CitrixADCImageID
         ManagementSecurityGroup: !GetAtt SecurityGroupStack.Outputs.ManagementSecurityGroupID
@@ -460,9 +475,15 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-      - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/citrix-adc.template.yaml
-      - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/citrix-adc.template.yaml
+        - S3Region:
+            !If [UsingDefaultBucket, !Ref "AWS::Region", !Ref QSS3BucketRegion]
+          S3Bucket:
+            !If [
+              UsingDefaultBucket,
+              !Sub "${QSS3BucketName}-${AWS::Region}",
+              !Ref QSS3BucketName,
+            ]
       Parameters:
         CitrixADCImageID: !Ref CitrixADCImageID
         ManagementSecurityGroup: !GetAtt SecurityGroupStack.Outputs.ManagementSecurityGroupID
@@ -488,20 +509,99 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-      - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/lambda-copier.template.yaml
-      - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/lambda-copier.template.yaml
+        - S3Region:
+            !If [UsingDefaultBucket, !Ref "AWS::Region", !Ref QSS3BucketRegion]
+          S3Bucket:
+            !If [
+              UsingDefaultBucket,
+              !Sub "${QSS3BucketName}-${AWS::Region}",
+              !Ref QSS3BucketName,
+            ]
       Parameters:
-        QSS3BucketName: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        QSS3BucketName:
+          !If [
+            UsingDefaultBucket,
+            !Sub "${QSS3BucketName}-${AWS::Region}",
+            !Ref QSS3BucketName,
+          ]
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
 
-  LambdaHAAZStack:
+  PrimaryPooledLicenseStack:
+    Condition: UsePooledLicense
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-      - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/lambda-ha-across-az.template.yaml
-      - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/lambda-pooled-license.template.yaml
+        - S3Region:
+            !If [UsingDefaultBucket, !Ref "AWS::Region", !Ref QSS3BucketRegion]
+          S3Bucket:
+            !If [
+              UsingDefaultBucket,
+              !Sub "${QSS3BucketName}-${AWS::Region}",
+              !Ref QSS3BucketName,
+            ]
+      Parameters:
+        ADCInstanceID: !GetAtt PrimaryADCInstance.Outputs.CitrixADCInstanceID
+        ADMIP: !Ref ADMIP
+        Bandwidth: !Ref Bandwidth
+        LicensingMode: !Ref LicensingMode
+        ManagementPrivateIP: !GetAtt PrimaryADCInstance.Outputs.ManagementPrivateNSIP
+        ManagementPrivateSubnetID: !Ref PrimaryManagementPrivateSubnetID
+        ManagementSecurityGroupID: !GetAtt SecurityGroupStack.Outputs.ManagementSecurityGroupID
+        Platform: !Ref Platform
+        PooledEdition: !Ref PooledEdition
+        QSS3BucketName: !GetAtt LambdaCopierStack.Outputs.LambdaZipsBucket
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
+        VCPUEdition: !Ref VCPUEdition
+
+  SecondaryPooledLicenseStack:
+    Condition: UsePooledLicense
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/lambda-pooled-license.template.yaml
+        - S3Region:
+            !If [UsingDefaultBucket, !Ref "AWS::Region", !Ref QSS3BucketRegion]
+          S3Bucket:
+            !If [
+              UsingDefaultBucket,
+              !Sub "${QSS3BucketName}-${AWS::Region}",
+              !Ref QSS3BucketName,
+            ]
+      Parameters:
+        ADCInstanceID: !GetAtt SecondaryADCInstance.Outputs.CitrixADCInstanceID
+        ADMIP: !Ref ADMIP
+        Bandwidth: !Ref Bandwidth
+        LicensingMode: !Ref LicensingMode
+        ManagementPrivateIP: !GetAtt SecondaryADCInstance.Outputs.ManagementPrivateNSIP
+        ManagementPrivateSubnetID: !Ref SecondaryManagementPrivateSubnetID
+        ManagementSecurityGroupID: !GetAtt SecurityGroupStack.Outputs.ManagementSecurityGroupID
+        Platform: !Ref Platform
+        PooledEdition: !Ref PooledEdition
+        QSS3BucketName: !GetAtt LambdaCopierStack.Outputs.LambdaZipsBucket
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
+        VCPUEdition: !Ref VCPUEdition
+
+  LambdaHAAZStack:
+    Metadata:
+      PseudoDependsOn: !If
+        - UsePooledLicense
+        - - !Ref PrimaryPooledLicenseStack
+          - !Ref SecondaryPooledLicenseStack
+        - ''
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/lambda-ha-across-az.template.yaml
+        - S3Region:
+            !If [UsingDefaultBucket, !Ref "AWS::Region", !Ref QSS3BucketRegion]
+          S3Bucket:
+            !If [
+              UsingDefaultBucket,
+              !Sub "${QSS3BucketName}-${AWS::Region}",
+              !Ref QSS3BucketName,
+            ]
       Parameters:
         PrimaryInstanceID: !GetAtt PrimaryADCInstance.Outputs.CitrixADCInstanceID
         PrimaryManagementPrivateIP: !GetAtt PrimaryADCInstance.Outputs.ManagementPrivateNSIP
@@ -521,9 +621,15 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-      - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/lambda-servers-active-active.template.yaml
-      - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/lambda-servers-active-active.template.yaml
+        - S3Region:
+            !If [UsingDefaultBucket, !Ref "AWS::Region", !Ref QSS3BucketRegion]
+          S3Bucket:
+            !If [
+              UsingDefaultBucket,
+              !Sub "${QSS3BucketName}-${AWS::Region}",
+              !Ref QSS3BucketName,
+            ]
       Parameters:
         PrimaryInstanceID: !GetAtt PrimaryADCInstance.Outputs.CitrixADCInstanceID
         PrimaryManagementPrivateIP: !GetAtt PrimaryADCInstance.Outputs.ManagementPrivateNSIP
@@ -537,41 +643,20 @@ Resources:
         PrimaryServerPrivateSubnetID: !Ref PrimaryServerPrivateSubnetID
         SecondaryServerPrivateSubnetID: !Ref SecondaryServerPrivateSubnetID
 
-  LambdaPooledLicenseStack:
-    DependsOn: LambdaServersActiveActiveStack
-    Condition: UsePooledLicense
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub
-      - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/lambda-pooled-license.template.yaml
-      - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-      Parameters:
-        PrimaryInstanceID: !GetAtt PrimaryADCInstance.Outputs.CitrixADCInstanceID
-        PrimaryManagementPrivateIP: !GetAtt PrimaryADCInstance.Outputs.ManagementPrivateNSIP
-        SecondaryInstanceID: !GetAtt PrimaryADCInstance.Outputs.CitrixADCInstanceID
-        SecondaryManagementPrivateIP: !GetAtt SecondaryADCInstance.Outputs.ManagementPrivateNSIP
-        QSS3BucketName: !GetAtt LambdaCopierStack.Outputs.LambdaZipsBucket
-        QSS3KeyPrefix: !Ref QSS3KeyPrefix
-        ManagementSecurityGroupID: !GetAtt SecurityGroupStack.Outputs.ManagementSecurityGroupID
-        PrimaryManagementPrivateSubnetID: !Ref PrimaryManagementPrivateSubnetID
-        SecondaryManagementPrivateSubnetID: !Ref SecondaryManagementPrivateSubnetID
-        ADMIP: !Ref ADMIP
-        LicensingMode: !Ref LicensingMode
-        Bandwidth: !Ref Bandwidth
-        PooledEdition: !Ref PooledEdition
-        Platform: !Ref Platform
-        VCPUEdition: !Ref VCPUEdition
-
   LambdaWAFStack:
-    Metadata:
-      PseudoDependsOn: !If [UsePooledLicense, !Ref LambdaPooledLicenseStack, !Ref LambdaServersActiveActiveStack]
+    DependsOn: LambdaServersActiveActiveStack
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-      - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/lambda-waf.template.yaml
-      - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/lambda-waf.template.yaml
+        - S3Region:
+            !If [UsingDefaultBucket, !Ref "AWS::Region", !Ref QSS3BucketRegion]
+          S3Bucket:
+            !If [
+              UsingDefaultBucket,
+              !Sub "${QSS3BucketName}-${AWS::Region}",
+              !Ref QSS3BucketName,
+            ]
       Parameters:
         PrimaryInstanceID: !GetAtt PrimaryADCInstance.Outputs.CitrixADCInstanceID
         PrimaryManagementPrivateIP: !GetAtt PrimaryADCInstance.Outputs.ManagementPrivateNSIP

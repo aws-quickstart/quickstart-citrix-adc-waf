@@ -11,7 +11,7 @@ class CitrixADC(HTTPNitro):
         data = {
             'nsconfig': {}
         }
-        result = self.do_post(resource='nsconfig', data=data, action="save")
+        result = self.do_post(data=data, action="save")
         if result:
             logger.info('Successfully saved nsconfig of {}'.format(self.nsip))
         else:
@@ -19,11 +19,13 @@ class CitrixADC(HTTPNitro):
 
     def configure_features(self, featurelist):
         data = {'nsfeature': {'feature': featurelist}}
-        result = self.do_post(resource='nsfeature', data=data, action='enable')
+        result = self.do_post(data=data, action='enable')
         if result:
-            logger.info('SUCCESS: Added NS Features {} to {}'.format(str(featurelist), self.nsip))
+            logger.info('SUCCESS: Added NS Features {} to {}'.format(
+                str(featurelist), self.nsip))
         else:
-            raise Exception('FAIL: Could not NS Features {} to {}'.format(str(featurelist), self.nsip))
+            raise Exception('FAIL: Could not NS Features {} to {}'.format(
+                str(featurelist), self.nsip))
 
     def add_nsip(self, ip, netmask, iptype):
         data = {"nsip": {
@@ -31,12 +33,13 @@ class CitrixADC(HTTPNitro):
             "netmask": netmask,
             "type": iptype
         }}
-        result = self.do_post(resource='nsip', data=data)
+        result = self.do_post(data=data)
         if result:
             logger.info(
                 'Successfully added NSIP {} with type {}'.format(ip, iptype))
         else:
-            logger.error('Could not add NSIP {} with type {}'.format(ip, iptype))
+            logger.error(
+                'Could not add NSIP {} with type {}'.format(ip, iptype))
             logger.error('Refer log file for more information')
             raise Exception
 
@@ -62,7 +65,8 @@ class CitrixADC(HTTPNitro):
         try:
             result = self.do_delete(resource='nsip', id=str(ipaddress))
         except Exception as e:
-            logger.error("Unable to remove NSIP {}: Exception: {}".format(ipaddress, str(e)))
+            logger.error(
+                "Unable to remove NSIP {}: Exception: {}".format(ipaddress, str(e)))
             return
 
         if result:
@@ -79,7 +83,7 @@ class CitrixADC(HTTPNitro):
                 "warm": warm
             }
         }
-        result = self.do_post(resource='reboot', data=data)
+        result = self.do_post(data=data)
         if result:
             logger.info('Successfully reboot {}'.format(self.nsip))
         else:
@@ -90,35 +94,41 @@ class CitrixADC(HTTPNitro):
             "systemparameter": {
                 "promptstring": promptstring
             }}
-        result = self.do_put(resource='systemparameter', data=data)
+        result = self.do_put(data=data)
         if result:
-            logger.info('SUCCESS: Changed CLI prompt of {} to {}'.format(self.nsip, promptstring))
+            logger.info('SUCCESS: Changed CLI prompt of {} to {}'.format(
+                self.nsip, promptstring))
         else:
-            logger.error('FAIL: Could not change CLI prompt of {} to  {}'.format(self.nsip, promptstring))
+            logger.error('FAIL: Could not change CLI prompt of {} to  {}'.format(
+                self.nsip, promptstring))
 
     def change_password(self, new_pass='nsroot'):
         # check for new_pass already updated
         self.nspass = new_pass
-        logger.info('Before changing the password of {} to {}, checking if the password is already updated'.format(self.nsip, self.nspass))
+        logger.info('Before changing the password of {} to {}, checking if the password is already updated'.format(
+            self.nsip, self.nspass))
         if self.check_connection():
             logger.info('Password already changed to {}'.format(self.nspass))
             self.headers['X-NITRO-PASS'] = self.nspass
             return True
         else:
-            logger.info('Password has not been changed earlier, need to change it')
+            logger.info(
+                'Password has not been changed earlier, need to change it')
             data = {"systemuser": {
                 "username": self.nsuser,
                 "password": new_pass,
             }}
-            result = self.do_put(resource='systemuser', data=data)
+            result = self.do_put(data=data)
 
             if result:
                 self.nspass = new_pass
                 self.headers['X-NITRO-PASS'] = self.nspass
-                logger.info('Successfully changed password of {} to {}'.format(self.nsip, new_pass))
+                logger.info('Successfully changed password of {} to {}'.format(
+                    self.nsip, new_pass))
                 return True
             else:
-                logger.error('Could not change password of {} to {}'.format(self.nsip, new_pass))
+                logger.error('Could not change password of {} to {}'.format(
+                    self.nsip, new_pass))
                 logger.error('Refer log file for more information')
                 raise Exception
 
@@ -131,24 +141,52 @@ class CitrixADC(HTTPNitro):
                 'ipaddress': ipaddress,
             }
         }
-        result = self.do_post(resource='hanode', data=data)
+        result = self.do_post(data=data)
         if result:
             logger.info('SUCCESS: HA node added for {}'.format(self.nsip))
         else:
-            raise Exception('FAIL: Could not add HA node for {}'.format(self.nsip))
+            raise Exception(
+                'FAIL: Could not add HA node for {}'.format(self.nsip))
+
+    def hafailover(self, force=True):
+        data = {"hafailover": {
+            "force": force,
+        }}
+        result = self.do_post(data=data, action='Force')
+        if result:
+            logger.info('SUCCESS: Force HA failover for {}'.format(self.nsip))
+        else:
+            raise Exception(
+                'FAIL: Could not force HA failover for {}'.format(self.nsip))
+
+    def is_primarynode(self):
+        result = self.do_get(resource='hanode')
+        if result:
+            for node in result['hanode']:
+                if node['ipaddress'] != self.nsip:
+                    continue
+                return True if node['state'].upper() == 'PRIMARY' else False
+            else:
+                raise Exception(
+                    'Did not find {} in `show ha node`'.format(self.nsip))
+        else:
+            raise Exception('show ha node exception {}'.format(result))
 
     # Network
+
     def add_ipset(self, name):
         data = {
             'ipset': {
                 'name': name,
             }
         }
-        result = self.do_post(resource='ipset', data=data)
+        result = self.do_post(data=data)
         if result:
-            logger.info('SUCCESS: IPSET {} added for {}'.format(name, self.nsip))
+            logger.info(
+                'SUCCESS: IPSET {} added for {}'.format(name, self.nsip))
         else:
-            raise Exception('FAIL: Could not add IPSET {} for {}'.format(name, self.nsip))
+            raise Exception(
+                'FAIL: Could not add IPSET {} for {}'.format(name, self.nsip))
 
     def add_route(self, network_ip, netmask, gateway_ip):
         data = {"route": {
@@ -156,21 +194,26 @@ class CitrixADC(HTTPNitro):
             "netmask": netmask,
             "gateway": gateway_ip,
         }}
-        result = self.do_post(resource='route', data=data)
+        result = self.do_post(data=data)
         if result:
-            logger.info('SUCCESS: "route {} {} {}" added to {}'.format(network_ip, netmask, gateway_ip, self.nsip))
+            logger.info('SUCCESS: "route {} {} {}" added to {}'.format(
+                network_ip, netmask, gateway_ip, self.nsip))
         else:
-            raise Exception('FAIL: Could not add "route {} {} {}" to {}'.format(network_ip, netmask, gateway_ip, self.nsip))
+            raise Exception('FAIL: Could not add "route {} {} {}" to {}'.format(
+                network_ip, netmask, gateway_ip, self.nsip))
 
     def remove_route(self, network_ip, netmask, gateway_ip):
         # for remote_route: https://10.0.x.x/nitro/v1/config/route?args=network:0.0.0.0,netmask:0.0.0.0,gateway:10.0.13.1
-        args = "network:{},netmask:{},gateway:{}".format(network_ip, netmask, gateway_ip)
+        args = "network:{},netmask:{},gateway:{}".format(
+            network_ip, netmask, gateway_ip)
 
         result = self.do_delete(resource='route', args=args)
         if result:
-            logger.info('SUCCESS: "route {} {} {}" removed for {}'.format(network_ip, netmask, gateway_ip, self.nsip))
+            logger.info('SUCCESS: "route {} {} {}" removed for {}'.format(
+                network_ip, netmask, gateway_ip, self.nsip))
         else:
-            raise Exception('FAIL: Could not remove "route {} {} {}" for {}'.format(network_ip, netmask, gateway_ip, self.nsip))
+            raise Exception('FAIL: Could not remove "route {} {} {}" for {}'.format(
+                network_ip, netmask, gateway_ip, self.nsip))
 
     def bind_ipset(self, name, ipaddress):
         data = {
@@ -179,25 +222,29 @@ class CitrixADC(HTTPNitro):
                 'ipaddress': ipaddress,
             }
         }
-        result = self.do_put(
-            resource='ipset_nsip_binding', data=data)
+        result = self.do_put(data=data)
         if result:
-            logger.info('SUCCESS: {} is bound to IPSET {} in {}'.format(ipaddress, name, self.nsip))
+            logger.info('SUCCESS: {} is bound to IPSET {} in {}'.format(
+                ipaddress, name, self.nsip))
         else:
-            raise Exception('FAIL: Could not bind {} to IPSET {} in {}'.format(ipaddress, name, self.nsip))
+            raise Exception('FAIL: Could not bind {} to IPSET {} in {}'.format(
+                ipaddress, name, self.nsip))
 
     # LB
-    def add_lbvserver(self, name, servicetype, ipaddress, port, ipset=""):
+    def add_lbvserver(self, name, servicetype, ipaddress, port, ipset=None):
         data = {
             'lbvserver': {
                 'name': name,
                 'ipv46': ipaddress,
                 'servicetype': servicetype,
                 'port': port,
-                'ipset': ipset,
+                # 'ipset': ipset,
             }
         }
-        result = self.do_post(resource='lbvserver', data=data)
+        if ipset:
+            data['lbvserver']['ipset'] = ipset
+
+        result = self.do_post(data=data)
         if result:
             logger.info(
                 'SUCCESS: LB Vserver {} added to {}'.format(name, self.nsip))
@@ -214,12 +261,13 @@ class CitrixADC(HTTPNitro):
                 "name": lbvserver_name,
                 "servicename": servicename,
             }}
-        result = self.do_put(
-            resource='lbvserver_service_binding', data=data, id=lbvserver_name)
+        result = self.do_put(data=data, id=lbvserver_name)
         if result:
-            logger.info('SUCCESS: lbvserver {} is bound to service {} in {}'.format(lbvserver_name, servicename, self.nsip))
+            logger.info('SUCCESS: lbvserver {} is bound to service {} in {}'.format(
+                lbvserver_name, servicename, self.nsip))
         else:
-            raise Exception('FAIL: Could not bind lbvserver {} to service {} in {}'.format(lbvserver_name, servicename, self.nsip))
+            raise Exception('FAIL: Could not bind lbvserver {} to service {} in {}'.format(
+                lbvserver_name, servicename, self.nsip))
 
     def add_service(self, servicename, serviceip, servicetype, port):
         data = {"service": {
@@ -228,7 +276,7 @@ class CitrixADC(HTTPNitro):
             "servicetype": servicetype,
             "port": port,
         }}
-        result = self.do_post(resource='service', data=data)
+        result = self.do_post(data=data)
         if result:
             logger.info(
                 'SUCCESS: Service {} added to {}'.format(servicename, self.nsip))
@@ -240,11 +288,12 @@ class CitrixADC(HTTPNitro):
     def add_licenseserver(self, admip, admport=27000):
         data = {
             "nslicenseserver": {
-                "servername": admip,
+                #"servername": admip,
+                "licenseserverip":admip,
                 "port": admport
             }
         }
-        result = self.do_post(resource='nslicenseserver', data=data)
+        result = self.do_post(data=data)
         if result:
             logger.info(
                 'SUCCESS: License server {} added to {}'.format(admip, self.nsip))
@@ -252,7 +301,7 @@ class CitrixADC(HTTPNitro):
             raise Exception(
                 'FAIL: Could not add licenseserver {} to {}'.format(admip, self.nsip))
 
-    def allocate_license(self, licensingmode, bandwidth, pooled_edition, platform, cpu_edition):
+    def allocate_pooled_license(self, licensingmode, bandwidth, pooled_edition, platform, cpu_edition):
         platform_map = {
             'VPX-10': 'VP10',
             'VPX-25': 'VP25',
@@ -301,12 +350,75 @@ class CitrixADC(HTTPNitro):
                     "edition": edition
                 }
             }
-        result = self.do_put(
-            resource='nscapacity', data=data)
+        result = self.do_put(data=data)
         if result:
-            logger.info('SUCCESS: Allocated {} Mbps to {} in {} edition'.format(bandwidth, self.nsip, edition))
+            logger.info('SUCCESS: Allocated {} Mbps to {} in {} edition'.format(
+                bandwidth, self.nsip, edition))
         else:
             raise Exception('FAIL: Could not allocate license')
+
+    def get_pooled_license(self):
+        return self.do_get(resource='nscapacity')['nscapacity']
+
+
+
+    def validate_pooled_license(self, licensingmode, bandwidth, pooled_edition, platform, cpu_edition):
+        nscapacity = self.get_pooled_license()
+        """
+        nscapacity = {
+            "actualbandwidth": "100",
+            "maxvcpucount": "4",
+
+            "edition": "Platinum",
+            "unit": "Mbps",
+            "bandwidth": "100",
+
+            "maxbandwidth": "100000",
+            "minbandwidth": "10",
+            "instancecount": "1"
+        }
+        nscapacity=  {
+            "nodeid":<Double_value>,
+            "actualbandwidth":<Double_value>,
+
+            "platform":<String_value>,
+
+            "vcpucount":<Double_value>,
+            "maxvcpucount":<Double_value>,
+
+            "edition":<String_value>,
+            "unit":<String_value>,
+            "bandwidth":<Double_value>,
+            "maxbandwidth":<Double_value>,
+            "minbandwidth":<Double_value>,
+
+            "instancecount":<Double_value>
+        }
+        """
+        # Mapping old way of license edition to new way of license edition
+        edition_map = {
+            # new_edition_name: old_edition_name
+            'Premium': 'Platinum',
+            'Advanced': 'Enterprise',
+        } 
+
+        if licensingmode == 'CICO-Licensing':
+            # platform
+            logger.info('SUCCESS: TODO: Returning SUCCESS without validation for {}'.format(self.nsip))
+            return True
+
+        elif licensingmode == 'Pooled-Licensing':
+            # bandwidth, edition, unit
+            # Assuming unit to be in Mbps, as allocation happened in Mbps
+            # TODO: take care of Gbps unit if necessary
+            if nscapacity['bandwidth'] == bandwidth and nscapacity['edition'] == edition_map[pooled_edition]:
+                logger.info('SUCCESS: Validation of pooled license is successful for {}'.format(self.nsip))
+                return True
+        elif licensingmode == 'CPU-Licensing':
+            # vcpu, edition
+            logger.info('SUCCESS: TODO: Returning SUCCESS without validation for {}'.format(self.nsip))
+            return True
+        raise Exception('FAIL: Pooled license allocation validation failed for {}'.format(self.nsip))
 
     # AppFW
     def check_license(self, nsfeature):
@@ -320,9 +432,10 @@ class CitrixADC(HTTPNitro):
             }
         }
         data['appfwprofile'].update(configdict)
-        result = self.do_post(resource='appfwprofile', data=data)
+        result = self.do_post(data=data)
         if result:
-            logger.info('SUCCESS: AppFw Profile {} added for {}'.format(profilename, self.nsip))
+            logger.info('SUCCESS: AppFw Profile {} added for {}'.format(
+                profilename, self.nsip))
         else:
             raise Exception(
                 'FAIL: Could not add AppFw Profile {} for {}'.format(profilename, self.nsip))
@@ -335,11 +448,13 @@ class CitrixADC(HTTPNitro):
                 "rule": rule,
             }
         }
-        result = self.do_post(resource='appfwpolicy', data=data)
+        result = self.do_post(data=data)
         if result:
-            logger.info('SUCCESS: AppFw Policy {} added for {}'.format(policyname, self.nsip))
+            logger.info('SUCCESS: AppFw Policy {} added for {}'.format(
+                policyname, self.nsip))
         else:
-            raise Exception('FAIL: Could not add AppFw Policy {} for {}'.format(policyname, self.nsip))
+            raise Exception('FAIL: Could not add AppFw Policy {} for {}'.format(
+                policyname, self.nsip))
 
     def bind_appfw_global_policy(self, policyname, priority, type):
         data = {
@@ -349,11 +464,13 @@ class CitrixADC(HTTPNitro):
                 'type': type,
             }
         }
-        result = self.do_put(resource='appfwglobal_appfwpolicy_binding', data=data)
+        result = self.do_put(data=data)
         if result:
-            logger.info('SUCCESS: AppFw policy {} is bound GLOBALLY in {}'.format(policyname, self.nsip))
+            logger.info('SUCCESS: AppFw policy {} is bound GLOBALLY in {}'.format(
+                policyname, self.nsip))
         else:
-            raise Exception('FAIL: Could not bind AppFw policy {} GLOBALLY in {}'.format(policyname, self.nsip))
+            raise Exception('FAIL: Could not bind AppFw policy {} GLOBALLY in {}'.format(
+                policyname, self.nsip))
 
     # Cluster
     def get_clip(self):
@@ -364,33 +481,35 @@ class CitrixADC(HTTPNitro):
                     return ip_dict['ipaddress']
             return False  # No CLIP found
 
-    def add_cluster_instance(self, instID):
+    def add_clusterinstance(self, instID):
         data = {"clusterinstance": {
             "clid": str(instID),
         }}
-        result = self.do_post(resource='clusterinstance', data=data)
+        result = self.do_post(data=data)
         if result:
-            logger.info('Successfully added cluster instance {} to {}'.format(instID, self.nsip))
+            logger.info('Successfully added cluster instance {} to {}'.format(
+                instID, self.nsip))
         else:
             logger.error(
                 'Could not add cluster instance {} to {}'.format(instID, self.nsip))
             logger.error('Refer log file for more information')
             raise Exception
 
-    def enable_cluster_instance(self, instID):
+    def enable_clusterinstance(self, instID):
         data = {"clusterinstance": {
             "clid": str(instID),
         }}
-        result = self.do_post(resource='clusterinstance', data=data, action="enable")
+        result = self.do_post(data=data, action="enable")
         if result:
-            logger.info('Successfully enabled cluster instance {} to {}'.format(instID, self.nsip))
+            logger.info('Successfully enabled cluster instance {} to {}'.format(
+                instID, self.nsip))
         else:
             logger.error(
                 'Could not enabled cluster instance {} to {}'.format(instID, self.nsip))
             logger.error('Refer log file for more information')
             raise Exception
 
-    def add_cluster_node(self, nodeID, nodeIP, backplane, tunnelmode, state):
+    def add_clusternode(self, nodeID, nodeIP, backplane, tunnelmode, state):
         data = {"clusternode": {
             "nodeid": str(nodeID),
             "ipaddress": nodeIP,
@@ -398,35 +517,38 @@ class CitrixADC(HTTPNitro):
             "backplane": backplane,
             "tunnelmode": tunnelmode
         }}
-        result = self.do_post(resource='clusternode', data=data)
+        result = self.do_post(data=data)
         if result:
-            logger.info('Successfully added cluster node with ID:{} and nodeIP:{}'.format(nodeID, nodeIP))
+            logger.info('Successfully added cluster node with ID:{} and nodeIP:{}'.format(
+                nodeID, nodeIP))
         else:
             logger.error(
                 'Could not add cluster node with ID:{} and nodeIP:{}'.format(nodeID, nodeIP))
             logger.error('Refer log file for more information')
             raise Exception
 
-    def set_cluster_node(self, nodeID, state):
+    def set_clusternode(self, nodeID, state):
         data = {"clusternode": {
             "nodeid": str(nodeID),
             "state": state,
         }}
-        result = self.do_put(resource='clusternode', data=data)
+        result = self.do_put(data=data)
         if result:
-            logger.info('Successfully set cluster node {} to state {}'.format(nodeID, state))
+            logger.info(
+                'Successfully set cluster node {} to state {}'.format(nodeID, state))
         else:
             logger.error(
                 'Could not add cluster node {} to state {}'.format(nodeID, state))
             logger.error('Refer log file for more information')
             raise Exception
 
-    def remove_cluster_node(self, nodeID):
+    def remove_clusternode(self, nodeID):
         result = None
         try:
             result = self.do_delete(resource='clusternode', id=str(nodeID))
         except Exception as e:
-            logger.error('Unable to fetch response from the CLIP. Reason:{}'.format(str(e)))
+            logger.error(
+                'Unable to fetch response from the CLIP. Reason:{}'.format(str(e)))
             return
 
         if result:
@@ -441,9 +563,10 @@ class CitrixADC(HTTPNitro):
             "clip": clip,
             "password": password
         }}
-        result = self.do_post(resource='cluster', data=data, action="join")
+        result = self.do_post(data=data, action="join")
         if result:
-            logger.info('Successfully joined cluster node {}'.format(self.nsip))
+            logger.info(
+                'Successfully joined cluster node {}'.format(self.nsip))
         else:
             logger.error('Could not join cluster node {}'.format(self.nsip))
             logger.error('Refer log file for more information')

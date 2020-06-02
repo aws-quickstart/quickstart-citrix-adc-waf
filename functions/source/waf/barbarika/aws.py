@@ -4,30 +4,9 @@ import boto3
 import re
 from operator import itemgetter
 
-from .helpers import logger, to_json, cidr_to_netmask, get_gateway_ip
+from .helpers import logger, to_json, cidr_to_netmask, get_gateway_ip, waitfor
+from . import CITRIX_AWS_PRODUCTS
 
-citrix_aws_products = {
-    'Citrix ADC VPX - Customer Licensed': '63425ded-82f0-4b54-8cdd-6ec8b94bd4f8',
-    'Citrix ADC VPX Express - 20 Mbps': 'daf08ece-57d1-4c0a-826a-b8d9449e3930',
-
-    'Citrix ADC VPX Standard Edition - 10 Mbps': '85bb75fd-34a4-4395-bb19-04b71b20cf3e',
-    'Citrix ADC VPX Standard Edition - 200 Mbps': 'dd84ff86-4cea-4c4b-8811-726d079324c7',
-    'Citrix ADC VPX Standard Edition - 1000 Mbps': '8328715f-8ad4-4121-af6f-77466a6fd325',
-    'Citrix ADC VPX Standard Edition - 3Gbps': 'ecde3c83-e3df-4310-931c-be7164f3c504',
-    'Citrix ADC VPX Standard Edition - 5Gbps': '5b010f6b-96e4-4f67-bd66-07022dd5dfec',
-
-    'Citrix ADC VPX Premium Edition - 10 Mbps': '0f7c03e9-ccf7-4b68-815f-0696e1e5770f',
-    'Citrix ADC VPX Premium Edition - 200 Mbps': 'a277a667-7f08-44c9-9787-59424b2c50fa',
-    'Citrix ADC VPX Premium Edition - 1000 Mbps': '198e217b-a775-4322-8bfe-ab1ea7d598f4',
-    'Citrix ADC VPX Premium Edition - 3Gbps': '302979c1-fe98-4344-8a11-c26c88f55e01',
-    'Citrix ADC VPX Premium Edition - 5Gbps': '755645a9-d61f-4350-bb91-a6ef204debb3',
-
-    'Citrix ADC VPX Advanced Edition - 10 Mbps': '9ff329b9-3273-4ab0-a7db-d1bd714d4bb3',
-    'Citrix ADC VPX Advanced Edition - 200 Mbps': 'fff7ca8f-96a9-4ea7-afa1-279b0d23fe3c',
-    'Citrix ADC VPX Advanced Edition - 1000 Mbps': '4e123cf4-fe4c-4afd-a11e-b4280a522de5',
-    'Citrix ADC VPX Advanced Edition - 3Gbps': 'd0ebd087-5a71-47e4-8eb0-8bbac8593b43',
-    'Citrix ADC VPX Advanced Edition - 5Gbps': 'f67de268-1a70-477e-b135-bf789a9e1d76',
-}
 
 ec2_client = boto3.client('ec2')
 
@@ -35,7 +14,8 @@ ec2_client = boto3.client('ec2')
 def send_response(event, context, response_status, response_data, physical_resource_id=None, fail_reason=None):
     response_url = event['ResponseURL']
 
-    logger.info('Lambda Backed Custom resource response: going to respond to ' + response_url)
+    logger.info(
+        'Lambda Backed Custom resource response: going to respond to ' + response_url)
 
     response_body = {}
     response_body['Status'] = response_status
@@ -51,7 +31,8 @@ def send_response(event, context, response_status, response_data, physical_resou
 
     json_response_body = json.dumps(response_body)
 
-    logger.info('Lambda Backed Custom resource Response body:\n' + json_response_body)
+    logger.info('Lambda Backed Custom resource Response body:\n' +
+                json_response_body)
 
     headers = {
         'content-type': '',
@@ -62,9 +43,11 @@ def send_response(event, context, response_status, response_data, physical_resou
         response = requests.put(response_url,
                                 data=json_response_body,
                                 headers=headers)
-        logger.info('Lambda Backed Custom resource response success: Status code: ' + response.reason)
+        logger.info(
+            'Lambda Backed Custom resource response success: Status code: ' + response.reason)
     except Exception as e:
-        logger.error('Lambda Backed Custom resource response: Failed to post response to ' + response_url + ': ' + str(e))
+        logger.error('Lambda Backed Custom resource response: Failed to post response to ' +
+                     response_url + ': ' + str(e))
 
 
 def get_subnet_address(subnet_id):
@@ -78,6 +61,7 @@ def get_subnet_address(subnet_id):
     except Exception as e:
         logger.error('Could not get subnet details: ' + str(e))
 
+
 def get_subnet_gateway(subnet_id):
     filters = []
     subnets = ec2_client.describe_subnets(
@@ -88,6 +72,7 @@ def get_subnet_gateway(subnet_id):
         return get_gateway_ip(cidr)
     except Exception as e:
         logger.error('Could not get subnet details: ' + str(e))
+
 
 def get_reachability_status(nsip, instID):
     response = ec2_client.describe_instance_status(
@@ -101,7 +86,8 @@ def get_reachability_status(nsip, instID):
 
 
 def get_latest_citrixadc_ami(version, product):
-    response = ec2_client.describe_images(Filters=[{'Name': 'description', 'Values': ['Citrix NetScaler and CloudBridge Connector {}*'.format(version)]}])
+    response = ec2_client.describe_images(Filters=[{'Name': 'description', 'Values': [
+                                          'Citrix NetScaler and CloudBridge Connector {}*'.format(version)]}])
     logger.debug('describe_images response: {}'.format(to_json(response)))
     product_images = []
     for image in response['Images']:
@@ -113,7 +99,7 @@ def get_latest_citrixadc_ami(version, product):
             grp = z.groups()
             ProductID = grp[3]
             try:
-                if ProductID.strip() == citrix_aws_products[product]:
+                if ProductID.strip() == CITRIX_AWS_PRODUCTS[product]:
                     product_images.append(image)
             except KeyError:
                 raise Exception('Unknown Product {}', format(product))
@@ -121,3 +107,68 @@ def get_latest_citrixadc_ami(version, product):
             raise Exception('Do not have any AMIs in the product specified')
     logger.debug('Sorted product images: {}'.format(to_json(product_images)))
     return sorted(product_images, key=itemgetter('CreationDate'), reverse=True)[0]['ImageId']
+
+
+def wait_for_reachability_status(status, max_retries, adc_ip, adc_instanceid):
+    retries = 1
+    while retries <= max_retries:
+        if get_reachability_status(adc_ip, adc_instanceid) == "passed":
+            logger.info(
+                'Citrix ADC VPX instances {} reachability status passed'.format(adc_ip))
+            break
+        waitfor(5, "ADC {} Rechabiliy status is not passed yet. Try No.{}".format(
+            adc_ip, retries))
+        retries += 1
+    else:
+        raise Exception('ADC {} did not pass the reachability status after {} tries'.format(
+            adc_ip, max_retries))
+
+
+def assign_secondary_ip_address(eni, ip_list=[], num_of_sec_ip=1):
+    response = ec2_client.assign_private_ip_addresses(
+        NetworkInterfaceId=eni,
+        **(dict(PrivateIpAddresses=ip_list) if ip_list else {}),
+        **(dict(SecondaryPrivateIpAddressCount=num_of_sec_ip) if not ip_list else {}),
+    )
+    return [ip['PrivateIpAddress'] for ip in response['AssignedPrivateIpAddresses']]
+
+def get_enis(instid):
+    response = ec2_client.describe_instances(InstanceIds=[instid])
+    return response['Reservations'][0]['Instances'][0]['NetworkInterfaces']
+
+def get_vip_eni(instid):
+    # VIP has device index as 1 
+    enis = get_enis(instid)
+    for eni in enis:
+        if eni['Attachment']['DeviceIndex'] == 1:
+            return eni['NetworkInterfaceId']
+    else:
+        raise Exception('Could not find VIP ENI for instance-id {}'.format(instid))
+
+def get_snip_eni(instid):
+    # VIP has device index as 1 
+    enis = get_enis(instid)
+    for eni in enis:
+        if eni['Attachment']['DeviceIndex'] == 2:
+            return eni['NetworkInterfaceId']
+    else:
+        raise Exception('Could not find SNIP ENI for instance-id {}'.format(instid))
+
+
+def get_vip_subnet(instid):
+    enis = get_enis(instid)
+    for eni in enis:
+        if eni['Attachment']['DeviceIndex'] == 1:
+            return eni['SubnetId']
+    else:
+        raise Exception('Could not find VIP SubnetID for instance-id {}'.format(instid))
+
+
+def get_snip_subnet(instid):
+    enis = get_enis(instid)
+    for eni in enis:
+        if eni['Attachment']['DeviceIndex'] == 2:
+            return eni['SubnetId']
+    else:
+        raise Exception('Could not find SNIP SubnetID for instance-id {}'.format(instid))
+

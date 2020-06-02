@@ -1,13 +1,14 @@
 import os
-from common.helpers import logger, waitfor
-from common.aws import send_response
-from common.citrixadc import CitrixADC
+from barbarika.helpers import logger, waitfor
+from barbarika.aws import send_response, wait_for_reachability_status
+from barbarika.citrixadc import CitrixADC
 
 
 current_aws_region = os.environ['AWS_DEFAULT_REGION']
 
 
 def lambda_handler(event, context):
+    MAX_RETRIES = 60
     fail_reason = None
     logger.info("event: {}".format(str(event)))
     request_type = event['RequestType']
@@ -15,11 +16,8 @@ def lambda_handler(event, context):
     response_data = {}
     try:
         if request_type == 'Create':
-            primary_instance_id = event['ResourceProperties']['PrimaryADCInstanceID']
-            primary_nsip = event['ResourceProperties']['PrimaryADCPrivateNSIP']
-
-            secondary_instance_id = event['ResourceProperties']['SecondaryADCInstanceID']
-            secondary_nsip = event['ResourceProperties']['SecondaryADCPrivateNSIP']
+            instance_id = event['ResourceProperties']['ADCInstanceID']
+            nsip = event['ResourceProperties']['ADCPrivateNSIP']
 
             adm_ip = event['ResourceProperties']['ADMIP']
             licensing_mode = event['ResourceProperties']['LicensingMode']
@@ -28,39 +26,32 @@ def lambda_handler(event, context):
             platform = event['ResourceProperties']['Platform']
             cpu_edition = event['ResourceProperties']['VCPUEdition']
 
-            primary = CitrixADC(nsip=primary_nsip,
-                                nsuser="nsroot", nspass=primary_instance_id)
-            secondary = CitrixADC(
-                nsip=secondary_nsip, nsuser="nsroot", nspass=secondary_instance_id)
+            adc = CitrixADC(nsip=nsip,
+                            nsuser="nsroot", nspass=instance_id)
 
-            try:  # If any of the following step fails, raise exception and return FAILED
-                primary.add_licenseserver(adm_ip)
-                primary.allocate_license(
-                    licensing_mode, bandwidth, pooled_edition, platform, cpu_edition)
-                primary.save_config()
-                secondary.save_config()
-                primary.reboot(warm=True)
-                waitfor(100, reason="Warm rebooting {} ".format(primary.nsip))
-                # The above reboot triggers ha-failover. So the secondaryADC becomes new-primaryADC
-                # Reboot secondaryADC (i.e., new-primaryADC) to have the primaryADC as the new-primaryADC
-                secondary.reboot(warm=True)
-                waitfor(100, reason="Warm rebooting {} ".format(secondary.nsip))
+            # Check if the reachability status is "passed" for the instance
+            # so that bootstrapping is completed
+            wait_for_reachability_status(status='passed', max_retries=MAX_RETRIES, adc_ip=nsip, adc_instanceid=instance_id)
+            adc.add_licenseserver(adm_ip)
 
-                primary.save_config()
-                secondary.save_config()
+            adc.allocate_pooled_license(
+                licensing_mode, bandwidth, pooled_edition, platform, cpu_edition)
+            adc.save_config()
+            adc.reboot(warm=True)
+            waitfor(200, reason="Warm rebooting {} ".format(adc.nsip))
 
-                response_status = 'SUCCESS'
-            except Exception as e:
-                fail_reason = str(e)
-                logger.error(fail_reason)
-                response_status = 'FAILED'
-            finally:
-                send_response(event, context, response_status,
-                              response_data, fail_reason=fail_reason)
-        elif request_type == 'Delete':
-            send_response(event, context, 'SUCCESS', {})
-        elif request_type == 'Update':
-            send_response(event, context, 'SUCCESS', {})
+            # Validate license
+            adc.validate_pooled_license(
+                licensing_mode, bandwidth, pooled_edition, platform, cpu_edition)
+
+            adc.save_config()
+            response_status = 'SUCCESS'
+        else:  # request_type == 'Delete' | 'Update'
+            response_status = 'SUCCESS'
     except Exception as e:
-        logger.error('Top level exception {}'.format(str(e)))
-        send_response(event, context, 'FAILED', {})
+        fail_reason = str(e)
+        logger.error(fail_reason)
+        response_status = 'FAILED'
+    finally:
+        send_response(event, context, response_status,
+                      response_data, fail_reason=fail_reason)
