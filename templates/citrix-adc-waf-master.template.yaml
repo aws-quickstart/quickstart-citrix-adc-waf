@@ -83,6 +83,7 @@ Metadata:
           default: AWS Quick Start Configuration
         Parameters:
           - QSS3BucketName
+          - QSS3BucketRegion
           - QSS3KeyPrefix
 
     ParameterLabels:
@@ -158,6 +159,8 @@ Metadata:
 
       QSS3BucketName:
         default: Quick Start S3 bucket name
+      QSS3BucketRegion:
+        default: Quick Start S3 bucket region
       QSS3KeyPrefix:
         default: Quick Start S3 key prefix
 
@@ -280,6 +283,10 @@ Parameters:
       not start or end with a hyphen. You can specify your own bucket if you
       copy all of the assets and submodules into it, if you want to override the
       Quick Start behavior for your specific implementation.
+    Type: String
+  QSS3BucketRegion:
+    Default: 'us-east-1'
+    Description: 'The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.'
     Type: String
   QSS3KeyPrefix:
     AllowedPattern: "^[0-9a-zA-Z-/]*/$"
@@ -434,6 +441,7 @@ Parameters:
       - "Yes"
 
 Conditions:
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
   UseBastion: !Equals [!Ref BastionRequired, "Yes"]
   UseClientEIP: !Equals [!Ref ClientEIPRequired, "Yes"]
   CreateIAMRole: !Equals [!Ref CitrixADCIAMRole, ""]
@@ -442,8 +450,10 @@ Resources:
   VPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub >-
-        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template
+      TemplateURL: !Sub
+      - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template
+      - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         NumberOfAZs: "2"
         AvailabilityZones: !Join
@@ -464,8 +474,10 @@ Resources:
   DeleteServersideNATGWSRoutetack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub >-
-        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}templates/update-serverside-route-table.template.yaml
+      TemplateURL: !Sub
+      - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/update-serverside-route-table.template.yaml
+      - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         PrimaryPrivateServerSubnetRouteTableID: !GetAtt VPCStack.Outputs.PrivateSubnet1ARouteTable
         SecondaryPrivateServerSubnetRouteTableID: !GetAtt VPCStack.Outputs.PrivateSubnet2ARouteTable
@@ -474,15 +486,18 @@ Resources:
     Condition: UseBastion
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub >-
-        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template
+      TemplateURL: !Sub
+      - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template
+      - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         BastionAMIOS: Ubuntu-Server-16.04-LTS-HVM
         KeyPairName: !Ref KeyPairName
         NumBastionHosts: "1"
         PublicSubnet1ID: !GetAtt VPCStack.Outputs.PublicSubnet1ID
         PublicSubnet2ID: !GetAtt VPCStack.Outputs.PublicSubnet2ID
-        QSS3BucketName: !Ref QSS3BucketName
+        QSS3BucketName: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        QSS3BucketRegion: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
         QSS3KeyPrefix: !Sub ${QSS3KeyPrefix}submodules/quickstart-linux-bastion/
         RemoteAccessCIDR: !Ref RestrictedSSHCIDR
         VPCID: !GetAtt VPCStack.Outputs.VPCID
@@ -490,8 +505,10 @@ Resources:
   WorkLoadStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub >-
-        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}templates/citrix-adc-waf-workload.template.yaml
+      TemplateURL: !Sub
+      - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/citrix-adc-waf-workload.template.yaml
+      - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         VPCID: !GetAtt VPCStack.Outputs.VPCID
         VPCTenancy: !Ref VPCTenancy
@@ -525,7 +542,8 @@ Resources:
         PooledEdition: !Ref PooledEdition
         Platform: !Ref Platform
         VCPUEdition: !Ref VCPUEdition
-        QSS3BucketName: !Ref QSS3BucketName
+        QSS3BucketName: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        QSS3BucketRegion: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
 
 Outputs:
