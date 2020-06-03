@@ -4,28 +4,18 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: "This template creates lambda function required to configure 2 ADCs in HA pair across Availability Zones"
 
 Parameters:
-  PrimaryInstanceID:
-    Description: Primary ADC Instance ID
+  ADCInstanceID:
+    Description: ADC Instance ID
     Type: String
-  PrimaryManagementPrivateIP:
-    Description: Primary Management Private IP
+  ManagementPrivateIP:
+    Description: Management Private IP
     Type: String
   ManagementSecurityGroupID:
     Type: String
-  PrimaryManagementPrivateSubnetID:
+  ManagementPrivateSubnetID:
     Type: AWS::EC2::Subnet::Id
     Description: >-
-      Private Subnet ID of an existing subnet dedicated for Primary Management ENI.
-  SecondaryManagementPrivateSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Private Subnet ID of an existing subnet dedicated for Secondary Management ENI.
-  SecondaryInstanceID:
-    Description: Secondary InstanceID
-    Type: String
-  SecondaryManagementPrivateIP:
-    Description: Secondary Management Private IP
-    Type: String
+      Private Subnet ID of an existing subnet dedicated for Management ENI.
 
   LicensingMode:
     Description: "[OPTIONAL] Select the Licensing Mode"
@@ -95,90 +85,71 @@ Parameters:
     Type: String
 
 Resources:
-  PooledLicenseRole:
-    Type: AWS::IAM::Role
+  AllocatePooledLicense:
     Properties:
-      Tags:
-        - Key: Name
-          Value: !Sub ${AWS::StackName} LambdaRole
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
-      Policies:
-        - PolicyName: lambdalogtocloudwatch
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "logs:CreateLogGroup"
-                  - "logs:CreateLogStream"
-                  - "logs:PutLogEvents"
-                  - "logs:CreateExportTask"
-                  - "logs:DescribeExportTask"
-                Resource: "arn:aws:logs:*:*:*"
-        - PolicyName: lambdaallowreadec2
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Action:
-                  - "ec2:DescribeInstances"
-                  - "ec2:DescribeNetworkInterfaces"
-                  - "ec2:DescribeSubnets"
-                  - "ec2:DescribeVpcs"
-                  - "ec2:DescribeAvailabilityZones"
-                  - "ec2:DescribeInstanceStatus"
-                Resource: "*"
-                Effect: Allow
-        - PolicyName: lambdaallowvpcaccessexecution
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Action:
-                  - "ec2:CreateNetworkInterface"
-                  - "ec2:DeleteNetworkInterface"
-                  - "ec2:AttachNetworkInterface"
-                  - "ec2:DetachNetworkInterface"
-                  - "ec2:ModifyNetworkInterfaceAttribute"
-                  - "ec2:ResetNetworkInterfaceAttribute"
-                Resource: "*"
-                Effect: Allow
-  ConfigurePooledLicenseFunction:
+      ADCInstanceID: !Ref ADCInstanceID
+      ADCPrivateNSIP: !Ref ManagementPrivateIP
+      ADMIP: !Ref ADMIP
+      Bandwidth: !Ref Bandwidth
+      LicensingMode: !Ref LicensingMode
+      Platform: !Ref Platform
+      PooledEdition: !Ref PooledEdition
+      ServiceToken: !GetAtt PooledLicenseFunction.Arn
+      VCPUEdition: !Ref VCPUEdition
+    Type: AWS::CloudFormation::CustomResource
+  PooledLicenseFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Tags:
-        - Key: Name
-          Value: !Sub ${AWS::StackName} LambdaFunction
       Code:
         S3Bucket: !Ref QSS3BucketName
         S3Key: !Sub ${QSS3KeyPrefix}functions/packages/waf/lambda-waf.zip
       Handler: lambda_pooled_license.lambda_handler
+      Role: !GetAtt "PooledLicenseRole.Arn"
       Runtime: python3.6
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PooledLicenseFunction
       Timeout: 900
-      Role: !GetAtt PooledLicenseRole.Arn
       VpcConfig:
-        SubnetIds:
-          - !Ref PrimaryManagementPrivateSubnetID
-          - !Ref SecondaryManagementPrivateSubnetID
         SecurityGroupIds:
           - !Ref ManagementSecurityGroupID
-  ConfigureLambda:
-    Type: Custom::LambdaPooledLicense
+        SubnetIds:
+          - !Ref ManagementPrivateSubnetID
+  PooledLicenseRole:
     Properties:
-      ServiceToken: !GetAtt ConfigurePooledLicenseFunction.Arn
-      PrimaryADCInstanceID: !Ref PrimaryInstanceID
-      PrimaryADCPrivateNSIP: !Ref PrimaryManagementPrivateIP
-      SecondaryADCInstanceID: !Ref SecondaryInstanceID
-      SecondaryADCPrivateNSIP: !Ref SecondaryManagementPrivateIP
-      ADMIP: !Ref ADMIP
-      LicensingMode: !Ref LicensingMode
-      Bandwidth: !Ref Bandwidth
-      PooledEdition: !Ref PooledEdition
-      Platform: !Ref Platform
-      VCPUEdition: !Ref VCPUEdition
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+        Version: 2012-10-17
+      Description: ""
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Path: /
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - ec2:DescribeInstances
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeVpcs
+                  - ec2:DescribeAvailabilityZones
+                  - ec2:DescribeInstanceStatus
+                  - ec2:CreateNetworkInterface
+                  - ec2:DeleteNetworkInterface
+                  - ec2:AttachNetworkInterface
+                  - ec2:DetachNetworkInterface
+                  - ec2:ModifyNetworkInterfaceAttribute
+                  - ec2:ResetNetworkInterfaceAttribute
+                  - ec2:AssignPrivateIpAddresses
+                  - ec2:UnassignPrivateIpAddresses
+                Effect: Allow
+                Resource: "*"
+            Version: 2012-10-17
+          PolicyName: citrixadc-lambda-policy
+    Type: AWS::IAM::Role
