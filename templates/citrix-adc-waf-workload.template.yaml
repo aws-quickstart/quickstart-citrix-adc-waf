@@ -42,37 +42,38 @@ Metadata:
           - CitrixADCImageID
 
       - Label:
-          default: Pooled Licensing configuration
-        Parameters:
-          - PooledLicense
-
-      - Label:
-          default: Licence Server Details - (Select only when the PooledLicense is selected `Yes`)
-        Parameters:
-          - ADMIP
-      - Label:
-          default: License Details
+          default: Licensing mode configuration
         Parameters:
           - LicensingMode
 
       - Label:
-          default: Pooled Licensing Details (Select only when the above Licensing Mode is "Pooled-Licensing")
+          default: Pooled licensing configuration
+        Parameters:
+          - PooledLicense
+
+      - Label:
+          default: License server configuration - (used only if PooledLicense is Yes)
+        Parameters:
+          - ADMIP
+
+      - Label:
+          default: Pooled licensing configuration (used only if licensing mode is Pooled-Licensing)
         Parameters:
           - Bandwidth
           - PooledEdition
 
       - Label:
-          default: CICO Licensing Details (Select only when the above Licensing Mode is "CICO-Licensing")
+          default: CICO licensing configuration (used only if licensing mode is CICO-Licensing)
         Parameters:
           - Platform
 
       - Label:
-          default: VCPU Licensing Details (Select only when the above Licensing Mode is "CPU-Licensing")
+          default: VCPU licensing configuration (used only if licensing mode is CPU-Licensing)
         Parameters:
           - VCPUEdition
 
       - Label:
-          default: AWS Quick Start Configuration
+          default: AWS Quick Start configuration
         Parameters:
           - QSS3BucketName
           - QSS3BucketRegion
@@ -85,41 +86,40 @@ Metadata:
       VPCID:
         default: VPC ID
       PrimaryManagementPrivateSubnetID:
-        default: Primary Management private subnet ID
+        default: Primary management private subnet ID
       PrimaryClientPublicSubnetID:
-        default: Primary Client public subnet ID
+        default: Primary client public subnet ID
       PrimaryServerPrivateSubnetID:
-        default: Primary Server private subnet ID
-
-      RestrictedWebAppCIDR:
-        default: Address range to access apps behind the WAFs (via VIP)
-      RestrictedSSHCIDR:
-        default: Address range to access Management interfaces
+        default: Primary server private subnet ID
 
       SecondaryManagementPrivateSubnetID:
-        default: Secondary Management private subnet ID
+        default: Secondary management private subnet ID
       SecondaryClientPublicSubnetID:
-        default: Secondary Client public subnet ID
+        default: Secondary client public subnet ID
       SecondaryServerPrivateSubnetID:
-        default: Secondary Server private subnet ID
+        default: Secondary server private subnet ID
 
       PrimaryManagementPrivateIP:
-        default: Primary Management private IP (NSIP)
+        default: Primary management private IP (NSIP)
       PrimaryClientPrivateIP:
-        default: Primary Client private IP (VIP)
+        default: Primary client private IP (VIP)
       PrimaryServerPrivateIP:
-        default: Primary Server private IP (SNIP)
+        default: Primary server private IP (SNIP)
       SecondaryManagementPrivateIP:
-        default: Secondary Management private IP (NSIP)
+        default: Secondary management private IP (NSIP)
       SecondaryClientPrivateIP:
-        default: Secondary Client private IP (VIP)
+        default: Secondary client private IP (VIP)
       SecondaryServerPrivateIP:
-        default: Secondary Server private IP (SNIP)
+        default: Secondary server private IP (SNIP)
       BastionSecurityGroupID:
         default: Bastion security group ID
 
       VPCTenancy:
         default: VPC tenancy attribute
+      RestrictedWebAppCIDR:
+        default: Restricted Web App CIDR
+      RestrictedSSHCIDR:
+        default: Restricted SSH CIDR
       KeyPairName:
         default: Key pair name
       CitrixADCInstanceType:
@@ -127,22 +127,22 @@ Metadata:
       CitrixADCIAMRole:
         default: Citrix WAF IAM role
       ClientEIPRequired:
-        default: Should PublicIP(EIP) be assigned to Client side?
+        default: Assign elastic IP to client VIP
 
       PooledLicense:
-        default: Do you want to allocate license from ADM?
+        default: Pooled license from ADM
       ADMIP:
-        default: Reachable ADM / ADM Agent IP
+        default: ADM agent IP address
       LicensingMode:
-        default: Licensing Mode
+        default: Licensing mode
       Platform:
-        default: Appliance Platform Type
+        default: Appliance platform type
       Bandwidth:
-        default: License Bandwidth in Mbps
+        default: License bandwidth in Mbps
       PooledEdition:
-        default: License Edition
+        default: Pooled edition
       VCPUEdition:
-        default: License Edition
+        default: vCPU Edition
 
       QSS3BucketName:
         default: Quick Start S3 bucket name
@@ -156,7 +156,7 @@ Parameters:
     Type: String
     Default: ""
     Description: >-
-      [Optional] Specify AMI ID of Citrix WAF to be provisioned. If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (https://aws.amazon.com/marketplace/pp/B08286P96W)" is provisioned by default. Or, If you are opting for `pooled license` below, enter latest BYOL AMI ID here.
+      (Optional) Specify AMI ID of Citrix WAF to be provisioned. If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (https://aws.amazon.com/marketplace/pp/B08286P96W)" is provisioned by default. Or, If you are opting for pooled license from ADM, enter latest BYOL AMI ID here.
   VPCID:
     Type: AWS::EC2::VPC::Id
     Description: The ID of your existing VPC (e.g., vpc-0343606e).
@@ -167,6 +167,96 @@ Parameters:
     AllowedValues:
       - default
       - dedicated
+  PrimaryManagementPrivateSubnetID:
+    Type: AWS::EC2::Subnet::Id
+    Description: >-
+      Private subnet ID of an existing subnet dedicated for primary management ENI.
+      Note - The CIDR should be different from that of VPC.
+  PrimaryClientPublicSubnetID:
+    Type: AWS::EC2::Subnet::Id
+    Description: >-
+      Public subnet ID of an existing subnet dedicated for primary client ENI.
+  PrimaryServerPrivateSubnetID:
+    Type: AWS::EC2::Subnet::Id
+    Description: >-
+      Private subnet ID of an existing subnet dedicated for primary server ENI.
+  SecondaryManagementPrivateSubnetID:
+    Type: AWS::EC2::Subnet::Id
+    Description: >-
+      Private subnet ID of an existing subnet dedicated for secondary management ENI.
+  SecondaryClientPublicSubnetID:
+    Type: AWS::EC2::Subnet::Id
+    Description: >-
+      Public subnet ID of an existing subnet dedicated for secondary client ENI.
+  SecondaryServerPrivateSubnetID:
+    Type: AWS::EC2::Subnet::Id
+    Description: >-
+      Private subnet ID of an existing subnet dedicated for secondary server ENI.
+  PrimaryManagementPrivateIP:
+    Default: ""
+    Type: String
+    Description: >-
+      (Optional) Leave empty for automatic assignment. Private IP address assigned to the primary management ENI (last octet has to be between 5 and 254).
+  PrimaryClientPrivateIP:
+    Default: ""
+    Type: String
+    Description: >-
+      (Optional) Leave empty for automatic assignment. Private IP address assigned to the primary client ENI (last octet has to be between 5 and 254).
+  PrimaryServerPrivateIP:
+    Default: ""
+    Type: String
+    Description: >-
+      (Optional) Leave empty for automatic assignment. Private IP address assigned to the primary server ENI (last octet has to be between 5 and 254).
+  SecondaryManagementPrivateIP:
+    Default: ""
+    Type: String
+    Description: >-
+      (Optional) Leave empty for automatic assignment. Private IP address assigned to the secondary management ENI (last octet has to be between 5 and 254).
+  SecondaryClientPrivateIP:
+    Default: ""
+    Type: String
+    Description: >-
+      (Optional) Leave empty for automatic assignment. Private IP address assigned to the secondary client ENI (last octet has to be between 5 and 254).
+  SecondaryServerPrivateIP:
+    Default: ""
+    Type: String
+    Description: >-
+      (Optional) Leave empty for automatic assignment. Private IP address assigned to the secondary server ENI (last octet has to be between 5 and 254).
+  BastionSecurityGroupID:
+    Type: String
+    Default: ""
+    Description: >-
+      (Optional) The security group ID associated with the bastion host, if present.
+      This will be used to allow access from the bastion hosts to the interfaces belonging to the security groups that will be created for the Citrix WAF HA pair.
+      Effectively the bastion hosts will be able to open connections to all WAF interfaces (management, client and server).
+  QSS3BucketName:
+    AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
+    ConstraintDescription: >-
+      Quick Start bucket name can include numbers, lowercase letters, uppercase
+      letters, and hyphens (-). It cannot start or end with a hyphen (-).
+    Default: aws-quickstart
+    Description: >-
+      S3 bucket name for the Quick Start assets. This bucket name can include
+      numbers, lowercase letters, uppercase letters, and hyphens (-), but should
+      not start or end with a hyphen. You can specify your own bucket if you
+      copy all of the assets and submodules into it, if you want to override the
+      Quick Start behavior for your specific implementation.
+    Type: String
+  QSS3BucketRegion:
+    Default: "us-east-1"
+    Description: "The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value."
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: "^[0-9a-zA-Z-/]*/$"
+    ConstraintDescription: >-
+      Quick Start key prefix can include numbers, lowercase letters, uppercase
+      letters, hyphens (-), and forward slash (/).
+    Default: quickstart-citrix-adc-waf/
+    Description: >-
+      S3 key prefix for the Quick Start assets. Quick Start key prefix can
+      include numbers, lowercase letters, uppercase letters, hyphens (-), and
+      forward slash (/).
+    Type: String
   RestrictedWebAppCIDR:
     Type: String
     MinLength: 9
@@ -187,112 +277,16 @@ Parameters:
       reduce the potential of inbound attacks from unknown IP addresses."
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
-  PrimaryManagementPrivateSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Private subnet ID of an existing subnet dedicated for Primary Management ENI.
-      Note - The CIDR should be different from that of VPC.
-      (VPC Stack Private subnet 1B).
-  PrimaryClientPublicSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Public subnet ID of an existing subnet dedicated for Primary Client ENI.
-      (VPC Stack Public subnet 1).
-  PrimaryServerPrivateSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Private subnet ID of an existing subnet dedicated for Primary Server ENI.
-      (VPC Stack Private subnet 1A).
-  SecondaryManagementPrivateSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Private subnet ID of an existing subnet dedicated for Secondary Management ENI.
-      (VPC Stack Private subnet 2B).
-  SecondaryClientPublicSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Public subnet ID of an existing subnet dedicated for Secondary Client ENI.
-      (VPC Stack Public subnet 2).
-  SecondaryServerPrivateSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: >-
-      Private subnet ID of an existing subnet dedicated for Secondary Server ENI.
-      (VPC Stack Private subnet 2A).
-  PrimaryManagementPrivateIP:
-    Default: ""
-    Type: String
-    Description: >-
-      [Optional] Leave empty for automatic assignment. Private IP assigned to the Primary Management ENI (last octet has to be between 5 and 254).
-  PrimaryClientPrivateIP:
-    Default: ""
-    Type: String
-    Description: >-
-      [Optional] Leave empty for automatic assignment. Private IP assigned to the Primary Client ENI (last octet has to be between 5 and 254).
-  PrimaryServerPrivateIP:
-    Default: ""
-    Type: String
-    Description: >-
-      [Optional] Leave empty for automatic assignment. Private IP assigned to the Primary Server ENI (last octet has to be between 5 and 254).
-  SecondaryManagementPrivateIP:
-    Default: ""
-    Type: String
-    Description: >-
-      [Optional] Leave empty for automatic assignment. Private IP assigned to the Secondary Management ENI (last octet has to be between 5 and 254).
-  SecondaryClientPrivateIP:
-    Default: ""
-    Type: String
-    Description: >-
-      [Optional] Leave empty for automatic assignment. Private IP assigned to the Secondary Client ENI (last octet has to be between 5 and 254).
-  SecondaryServerPrivateIP:
-    Default: ""
-    Type: String
-    Description: >-
-      [Optional] Leave empty for automatic assignment. Private IP assigned to the Secondary Server ENI (last octet has to be between 5 and 254).
-  BastionSecurityGroupID:
-    Type: String
-    Default: ""
-    Description: >-
-      [Optional] The security group ID associated with the bastion host, if present.
-      This will be used to allow access from the bastion hosts to the interfaces belonging to the security groups that will be created for the Citrix WAF HA pair.
-      Effectively the bastion hosts will be able to open connections to all WAF interfaces (management, client and server).
-  QSS3BucketName:
-    AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
-    ConstraintDescription: >-
-      Quick Start bucket name can include numbers, lowercase letters, uppercase
-      letters, and hyphens (-). It cannot start or end with a hyphen (-).
-    Default: aws-quickstart
-    Description: >-
-      S3 bucket name for the Quick Start assets. This bucket name can include
-      numbers, lowercase letters, uppercase letters, and hyphens (-), but should
-      not start or end with a hyphen. You can specify your own bucket if you
-      copy all of the assets and submodules into it, if you want to override the
-      Quick Start behavior for your specific implementation.
-    Type: String
-  QSS3BucketRegion:
-    Default: "us-east-1"
-    Description: The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.'
-    Type: String
-  QSS3KeyPrefix:
-    AllowedPattern: "^[0-9a-zA-Z-/]*/$"
-    ConstraintDescription: >-
-      Quick Start key prefix can include numbers, lowercase letters, uppercase
-      letters, hyphens (-), and forward slash (/).
-    Default: quickstart-citrix-adc-waf/
-    Description: >-
-      S3 key prefix for the Quick Start assets. Quick Start key prefix can
-      include numbers, lowercase letters, uppercase letters, hyphens (-), and
-      forward slash (/).
-    Type: String
   KeyPairName:
-    Description: EC2 key pair name to remotely access WAFs on port 22 (SSH).
+    Description: EC2 key pair name to remotely access ADC instances on port 22 (SSH).
     Type: AWS::EC2::KeyPair::KeyName
   CitrixADCInstanceType:
     Default: m4.xlarge
     ConstraintDescription: Must be a valid EC2 instance type.
     Type: String
     Description:
-      "Note: Please ensure that the instance type opted should align with the instance types
-      available in the AWS marketplace for the region of deployment, else the CFT would fail."
+      "Note: Please ensure that the instance type opted aligns with the instance types
+            available in the AWS marketplace for the region of deployment."
     AllowedValues:
       - t2.medium
       - t2.large
@@ -335,12 +329,12 @@ Parameters:
       - c5n.9xlarge
       - c5n.18xlarge
   CitrixADCIAMRole:
-    Description: "[OPTIONAL] If left empty, CFT will create required IAMRole. Refer https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/prerequisites.html for more details"
+    Description: "(Optional) If left empty, the deployment will create the required IAM role. Refer to https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/prerequisites.html for more details"
     Type: String
     Default: ""
 
   PooledLicense:
-    Description: Select 'Yes' to allocate license via ADM
+    Description: Choose Yes to allocate license via ADM
     Type: String
     Default: "No"
     AllowedValues:
@@ -348,7 +342,7 @@ Parameters:
       - "Yes"
 
   LicensingMode:
-    Description: "[OPTIONAL] Select the Licensing Mode"
+    Description: "(Optional) Choose the licensing mode"
     Type: String
     Default: ""
     AllowedValues:
@@ -357,29 +351,29 @@ Parameters:
       - "CICO-Licensing"
       - "CPU-Licensing"
   ADMIP:
-    Description: "[OPTIONAL] Reachable ADM / ADM Agent IP"
+    Description: "(Optional) The IP address of the ADM agent reachable from the ADC instances."
     Type: String
     Default: ""
   Bandwidth:
     Description: >-
       Initial bandwidth of the license in Mbps to be allocated after BYOL ADCs are created. Should be multiple of 10 Mbps.
-       Default is 0 Mbps
+       Default is 0 Mbps. This is used only if licensing mode is Pooled-Licensing.
     Type: Number
     Default: 0
   PooledEdition:
-    Description: "[OPTIONAL] License Edition for Pooled Capacity Licensing Mode"
+    Description: "(Optional) License edition for pooled capacity licensing mode. This is used only if licensing mode is Pooled-Licensing"
     Type: String
     Default: Premium
     AllowedValues:
       - Premium
   VCPUEdition:
-    Description: "[OPTIONAL] License Edition for vCPU Licensing Mode"
+    Description: "(Optional) License edition for vCPU licensing mode. This is needed only if licensing mode is CPU-Licensing."
     Type: String
     Default: Premium
     AllowedValues:
       - Premium
   Platform:
-    Description: "[OPTIONAL] License Platform"
+    Description: "(Optional) License platform. This is needed only if licensing mode is CICO-Licensing."
     Type: String
     Default: ""
     AllowedValues:
@@ -391,7 +385,7 @@ Parameters:
   ClientEIPRequired:
     Type: String
     Default: "Yes"
-    Description: Select "Yes" if required. Otherwise, you can assign yourself after the deployment.
+    Description: Choose No to assign client elastic IP address manually after the deployment.
     AllowedValues:
       - "No"
       - "Yes"
@@ -684,21 +678,21 @@ Outputs:
     Description: Primary WAF instance ID
     Value: !GetAtt PrimaryADCInstance.Outputs.CitrixADCInstanceID
   PrimaryManagementPrivateNSIP:
-    Description: Primary Management private NSIP
+    Description: Primary management private NSIP
     Value: !GetAtt PrimaryADCInstance.Outputs.ManagementPrivateNSIP
   PrimaryClientPublicEIP:
     Condition: UseClientEIP
-    Description: Primary Client public EIP
+    Description: Primary client public EIP
     Value: !GetAtt PrimaryADCInstance.Outputs.ClientPublicEIP
   PrimaryClientPrivateVIP:
-    Description: Primary Client private VIP
+    Description: Primary client private VIP
     Value: !GetAtt PrimaryADCInstance.Outputs.ClientPrivateVIP
   SecondaryADCInstanceID:
     Description: Secondary WAF instance ID
     Value: !GetAtt SecondaryADCInstance.Outputs.CitrixADCInstanceID
   SecondaryManagementPrivateNSIP:
-    Description: Secondary Management private NSIP
+    Description: Secondary management private NSIP
     Value: !GetAtt SecondaryADCInstance.Outputs.ManagementPrivateNSIP
   SecondaryClientPrivateVIP:
-    Description: Secondary Client private VIP
+    Description: Secondary client private VIP
     Value: !GetAtt SecondaryADCInstance.Outputs.ClientPrivateVIP
