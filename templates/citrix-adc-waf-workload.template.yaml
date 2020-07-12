@@ -6,7 +6,7 @@ Description: "
   to 3 VPC subnets (Management, Client, Server) on secondary.
   All the resource names created by this CFT will be prefixed with a tagName of the stackname
   **WARNING** This template creates AWS resources.
-  You will be billed for the AWS resources used if you create a stack from this template."
+  You will be billed for the AWS resources used if you create a stack from this template. (qs-1qtlldbfr)"
 
 Metadata:
   AWS::CloudFormation::Interface:
