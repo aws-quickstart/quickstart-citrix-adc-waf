@@ -2,6 +2,7 @@
 === Sign in to your AWS account
 
 . Sign in to your AWS account at https://aws.amazon.com with an IAM user role that has the necessary permissions. For details, see link:#_planning_the_deployment[Planning the deployment] earlier in this guide.
+. Use the Region selector in the navigation bar to choose the AWS Region where you want to deploy high availability across AWS Availability Zones.
 . Make sure that your AWS account is configured correctly, as discussed in the link:#_technical_requirements[Technical requirements] section.
 
 // Optional based on Marketplace listing. Not to be edited
@@ -11,11 +12,11 @@ ifdef::marketplace_subscription[]
 This Quick Start requires a subscription to the AMI for {partner-product-name} in AWS Marketplace.
 
 . Sign in to your AWS account.
-. {marketplace_listing_url}[Open the page for the {partner-product-name} AMI in AWS Marketplace], and then choose *Continue to Subscribe*.
-. Review the terms and conditions for software usage, and then choose *Accept Terms*. +
-  A confirmation page loads, and an email confirmation is sent to the account owner. For detailed subscription instructions, see the https://aws.amazon.com/marketplace/help/200799470[AWS Marketplace documentation^].
+. Review the AWS Marketplace pages for https://aws.amazon.com/marketplace/pp/B08286P96W?qid=1580407778935&sr=0-9&ref_=srh_res_product_title[Citrix WAF 200 Mbps] and https://aws.amazon.com/marketplace/pp/B08284R8P6?qid=1580407778935&sr=0-10&ref_=srh_res_product_title[Citrix WAF 1000 Mbps]. The VPX AMI instance requires a minimum of two virtual CPUs and 2 GB of memory. To retrieve the AMI ID, see https://github.com/citrix/citrix-adc-aws-cloudformation/blob/master/templates/README.md[Citrix Products on AWS Marketplace] on GitHub.
+. On the desired AWS Marketplace page, choose *Continue to Subscribe.*
+. Review the terms and conditions for software usage, and then choose *Accept Terms*. A confirmation page loads, and an email confirmation is sent to the account owner. For detailed subscription instructions, see the https://aws.amazon.com/marketplace/help/200799470[AWS Marketplace documentation].
+. When the subscription process is complete, exit out of AWS Marketplace without further action. *Do not* provision the software from AWS Marketplace—the Quick Start will deploy the AMI for you.
 
-. When the subscription process is complete, exit out of AWS Marketplace without further action. *Do not* provision the software from AWS Marketplace—the Quick Start deploys the AMI for you.
 endif::marketplace_subscription[]
 // \Not to be edited
 
