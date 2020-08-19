@@ -52,7 +52,7 @@ Metadata:
           - ClientEIPRequired
 
       - Label:
-          default: Pooled licensing configuration
+          default: Licensing configuration
         Parameters:
           - PooledLicense
           - ADMIP
@@ -113,7 +113,7 @@ Metadata:
       VPCTenancy:
         default: VPC tenancy attribute
       RestrictedWebAppCIDR:
-        default: Restricted Web App CIDR
+        default: Restricted web app CIDR
       RestrictedSSHCIDR:
         default: Restricted SSH CIDR
       KeyPairName:
@@ -398,7 +398,7 @@ Parameters:
     AllowedValues:
       - Premium
   Platform:
-    Description: "(Optional) License platform. This is needed only if licensing mode is CICO-Licensing."
+    Description: "(Optional) Appliance platform type for vCPU licensing mode. When licensing mode is CICO-Licensing, you can choose from the following four options: VPX-200, VPX-1000, VPX-3000, VPX-5000."
     Type: String
     Default: ""
     AllowedValues:
