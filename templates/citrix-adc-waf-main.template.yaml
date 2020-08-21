@@ -152,7 +152,7 @@ Parameters:
     Type: String
     Default: ""
     Description: >-
-      (Optional) The AMI ID of the Citrix WAF to be provisioned. If you are opting for pooled license from ADM, enter the latest BYOL AMI ID. If opting for subscription license, specify AMI ID of the Citrix WAF to be provisioned. If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (https://aws.amazon.com/marketplace/pp/B08286P96W)" is provisioned by default.
+      (Optional) The AMI ID of the Citrix WAF to be provisioned. If you are opting for pooled license from ADM, enter the latest BYOL AMI ID. If opting for a PAYG subscription license, enter the AMI ID of the Citrix WAF to be provisioned. If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (https://aws.amazon.com/marketplace/pp/B08286P96W)" is provisioned by default.
 
   VPCCIDR:
     Description: The CIDR block for the VPC. Must be a valid IP CIDR range of the form x.x.x.x/x.
@@ -170,13 +170,13 @@ Parameters:
       - default
       - dedicated
   PrimaryAvailabilityZone:
-    Description: The Availability Zone for primary Citrix WAF deployment.
+    Description: Availability Zone for primary Citrix WAF deployment.
     Type: AWS::EC2::AvailabilityZone::Name
   SecondaryAvailabilityZone:
-    Description: The Availability Zone for secondary Citrix WAF deployment.
+    Description: Availability Zone for secondary Citrix WAF deployment.
     Type: AWS::EC2::AvailabilityZone::Name
   PrimaryManagementPrivateSubnetCIDR:
-    Description: The CIDR block for the primary management private subnet located in the primary Availability Zone.
+    Description: CIDR block for the primary management private subnet located in the primary Availability Zone.
     Type: String
     Default: 10.0.1.0/24
     MinLength: 9
@@ -184,7 +184,7 @@ Parameters:
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
   PrimaryClientPublicSubnetCIDR:
-    Description: The CIDR block for the primary client public subnet located in the primary Availability Zone.
+    Description: CIDR block for the primary client public subnet located in the primary Availability Zone.
     Type: String
     Default: 10.0.2.0/24
     MinLength: 9
@@ -192,7 +192,7 @@ Parameters:
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
   PrimaryServerPrivateSubnetCIDR:
-    Description: The CIDR block for the primary server private subnet located in the primary Availability Zone.
+    Description: CIDR block for the primary server private subnet located in the primary Availability Zone.
     Type: String
     Default: 10.0.3.0/24
     MinLength: 9
@@ -200,7 +200,7 @@ Parameters:
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
   SecondaryManagementPrivateSubnetCIDR:
-    Description: The CIDR block for the secondary management private subnet located in the secondary Availability Zone.
+    Description: CIDR block for the secondary management private subnet located in the secondary Availability Zone.
     Type: String
     Default: 10.0.4.0/24
     MinLength: 9
@@ -208,7 +208,7 @@ Parameters:
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
   SecondaryClientPublicSubnetCIDR:
-    Description: The CIDR block for the secondary client public subnet located in the secondary Availability Zone.
+    Description: CIDR block for the secondary client public subnet located in the secondary Availability Zone.
     Type: String
     Default: 10.0.5.0/24
     MinLength: 9
@@ -216,7 +216,7 @@ Parameters:
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
   SecondaryServerPrivateSubnetCIDR:
-    Description: The CIDR block for the secondary server private subnet located in the secondary Availability Zone.
+    Description: CIDR block for the secondary server private subnet located in the secondary Availability Zone.
     Type: String
     Default: 10.0.6.0/24
     MinLength: 9
@@ -227,32 +227,32 @@ Parameters:
     Default: ""
     Type: String
     Description: >-
-      (Optional) This is the management private IP address of the primary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the primary management subnet CIDR.
+      (Optional) Management private IP address of the primary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the primary management subnet CIDR.
   PrimaryClientPrivateIP:
     Default: ""
     Type: String
     Description: >-
-      (Optional) This is the client private IP address of the primary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the primary client subnet CIDR.
+      (Optional) Client private IP address of the primary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the primary client subnet CIDR.
   PrimaryServerPrivateIP:
     Default: ""
     Type: String
     Description: >-
-      (Optional) This is the server private IP address of the primary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the primary server subnet CIDR.
+      (Optional) Server private IP address of the primary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the primary server subnet CIDR.
   SecondaryManagementPrivateIP:
     Default: ""
     Type: String
     Description: >-
-      (Optional) This is the management private IP address of the secondary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the secondary management subnet CIDR.
+      (Optional) Management private IP address of the secondary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the secondary management subnet CIDR.
   SecondaryClientPrivateIP:
     Default: ""
     Type: String
     Description: >-
-      (Optional) This is the client private IP address of the secondary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the secondary client subnet CIDR.
+      (Optional) Client private IP address of the secondary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the secondary client subnet CIDR.
   SecondaryServerPrivateIP:
     Default: ""
     Type: String
     Description: >-
-      (Optional) This is the server private IP address of the secondary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the secondary server subnet CIDR.
+      (Optional) Server private IP address of the secondary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the secondary server subnet CIDR.
   QSS3BucketName:
     AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
     ConstraintDescription: >-
@@ -356,7 +356,7 @@ Parameters:
 
   PooledLicense:
     Description: >-
-      If choosing BYOL option for licensing, choose Yes from dropdown. This would allow you to upload your already purchased licenses.
+      If choosing BYOL option for licensing, choose Yes. This would allow you to upload your already purchased licenses.
       Before choosing Yes, configure Citrix ADM as a license server for the Citrix ADC pooled capacity. Refer to https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server for details.
     Type: String
     Default: "No"
@@ -382,7 +382,7 @@ Parameters:
     Default: ""
   Bandwidth:
     Description: >-
-      (Optional) This is used only if the licensing mode is Pooled-Licensing. It allocates an initial bandwidth of the license in Mbps to be allocated after BYOL ADCs are created. Should be multiple of 10 Mbps.
+      (Optional) Specify only if the licensing mode is Pooled-Licensing. It allocates an initial bandwidth of the license in Mbps to be allocated after BYOL ADCs are created. If using, enter a multiple of 10 Mbps.
     Type: Number
     Default: 0
   PooledEdition:
@@ -410,7 +410,7 @@ Parameters:
   BastionRequired:
     Type: String
     Default: "No"
-    Description: By default, no bastion host is configured. For a sandbox deployment, choose Yes from drop down which would deploy a Linux bastion host in the public subnet with an Elastic IP address that would give you access to the components in private and public subnet.
+    Description: For a sandbox deployment, choose Yes from the dropdown list. This deploys a Linux bastion host in the public subnet with an Elastic IP address that gives you access to the components in the private and public subnets.
     AllowedValues:
       - "No"
       - "Yes"
