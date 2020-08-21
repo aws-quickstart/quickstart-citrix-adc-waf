@@ -13,6 +13,18 @@ Description:
 Metadata:
   QuickStartDocumentation:
     EntrypointName: "Launch into a new VPC"
+    OptionalParameters:
+      - PrimaryManagementPrivateIP
+      - PrimaryClientPrivateIP
+      - PrimaryServerPrivateIP
+      - SecondaryManagementPrivateIP
+      - SecondaryClientPrivateIP
+      - SecondaryServerPrivateIP
+      - CitrixADCImageID
+      - CitrixADCIAMRole
+      - ADMIP
+      - LicensingMode
+      - Platform
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
