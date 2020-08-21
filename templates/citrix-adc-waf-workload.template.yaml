@@ -367,7 +367,7 @@ Parameters:
   ClientEIPRequired:
     Type: String
     Default: "Yes"
-    Description: Choose No to assign client elastic IP address manually after the deployment.
+    Description: Choose No to assign client Elastic IP address manually after the deployment.
     AllowedValues:
       - "No"
       - "Yes"

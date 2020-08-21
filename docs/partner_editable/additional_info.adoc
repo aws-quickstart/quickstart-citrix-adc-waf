@@ -32,7 +32,7 @@ image::../images/retrieve-primary-waf-nsip.png[image_placeholder,width=648,heigh
 image::../images/sandbox-deployment-resources.png[image_placeholder,width=648,height=439]
 
 [start=3]
-. To store the key in your keychain, run the command ssh-add -K _<your-key-pair>_.pem. (On Linux terminal, you might need to omit the -K flag.)
+. To store the key in your keychain, run the command `ssh-add -K _<your-key-pair>_.pem`. (On Linux terminal, you might need to omit the -K flag.)
 . Log in to the bastion host using the following command, using the value for *LinuxBastionHostEIP1* that you noted in step 2.
 
 ```
@@ -40,7 +40,7 @@ ssh -A ubuntu@<LinuxBastionHostEIP1>
 ```
 
 [start=5]
-. From the bastion host, as shown in <<testStep3>>, you can connect to the primary WAF instance by using SSH with username *nsroot* and *PrimaryManagementPrivateNSIP* (associated with eth0) and password being *PrimaryADCInstance ID* noted in step 2.
+. From the bastion host, as shown in <<testStep3>>, you can connect to the primary WAF instance by using SSH with username *nsroot* and *PrimaryManagementPrivateNSIP* (associated with eth0) and password being *PrimaryADCInstanceID* noted in step 2.
 
 ```
 ssh nsroot@<Primary Management Private NSIP>
