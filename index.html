@@ -762,6 +762,11 @@ table.tableblock .title,
 table p {
   margin: 0rem;
 }
+
+/* Add border around hyperlink images */
+a img {
+    border: 1px solid #A4A4A4;
+}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
@@ -785,7 +790,7 @@ table p {
 <li><a href="#_deployment_steps">Deployment steps</a>
 <ul class="sectlevel2">
 <li><a href="#_sign_in_to_your_aws_account">Sign in to your AWS account</a></li>
-<li><a href="#_subscribe_to_the_citrix_web_app_firewall_waf_ami">Subscribe to the Citrix Web App Firewall (WAF) AMI</a></li>
+<li><a href="#_subscribe_to_the_citrix_waf_ami">Subscribe to the Citrix WAF AMI</a></li>
 <li><a href="#_launch_the_quick_start">Launch the Quick Start</a></li>
 <li><a href="#_launch_into_an_existing_vpc">Launch into an existing VPC</a></li>
 <li><a href="#_launch_into_a_new_vpc">Launch into a new VPC</a></li>
@@ -848,7 +853,7 @@ report bugs, or submit feature ideas for this Quick Start.
 <h2 id="_overview">Overview</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This Quick Start reference deployment guide provides step-by-step instructions for deploying Citrix Web App Firewall (WAF) for high availability (HA) on the AWS Cloud.</p>
+<p>This Quick Start reference deployment guide provides step-by-step instructions for deploying Citrix WAF for high availability (HA) on the AWS Cloud.</p>
 </div>
 <div class="paragraph">
 <p>This Quick Start is for users who want to mitigate threats to public-facing or internal web assets running on AWS. Use this Quick Start to build and test a proof of concept or to create a production-ready solution with a highly available deployment of Citrix WAF as a front end for your web applications.</p>
@@ -951,7 +956,12 @@ After you deploy the Quick Start, enable the <a href="https://docs.aws.amazon.co
 <p><strong>Pay-as-you-go (PAYG) subscription-based</strong> <strong>model for production</strong> <strong>licenses:</strong> This model is restricted to a specific bandwidth and other performance metrics based on the license edition that the listing is bound to. In AWS Marketplace, the PAYG options for the Citrix WAF AMI are called “Citrix Web App Firewall (WAF).” You can choose from two throughput options: <a href="https://aws.amazon.com/marketplace/pp/B08286P96W?qid=1580407778935&amp;sr=0-9&amp;ref_=srh_res_product_title">200 Mbps</a> or <a href="https://aws.amazon.com/marketplace/pp/B08284R8P6?qid=1580407778935&amp;sr=0-10&amp;ref_=srh_res_product_title">1000 Mbps</a>.</p>
 </li>
 <li>
-<p><strong>Bring-your-own-license (BYOL) model:</strong> This model applies if you have purchased a license through other channels. You need this type of license to dynamically modify the bandwidth—that is, to go for a higher throughput (such as &gt; 5 Gbps). These are <a href="https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity.html">pooled-capacity licenses</a> that are used in conjunction with Citrix Application Delivery Management (ADM). In AWS Marketplace, the BYOL options for the Citrix WAF AMI are called “https://aws.amazon.com/marketplace/pp/B00AA01BOE[Citrix ADC VPX - Customer Licensed].” To use the BYOL model, you must have an AppFW feature enabled and must <a href="https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server">configure Citrix ADM as a licensing server</a>. Whether you deploy Citrix ADM on premises or as an agent in the cloud, you must use a reachable ADM IP as an input parameter when deploying the Quick Start.<br>
+<p><strong>Bring-your-own-license (BYOL) model:</strong> This model applies if you have purchased a license through other channels. You need this type of license to dynamically modify the bandwidth—that is,
+to go for a higher throughput (such as &gt; 5 Gbps). These are <a href="https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity.html">pooled-capacity licenses</a>
+that are used in conjunction with Citrix Application Delivery Management (ADM). In AWS Marketplace, the BYOL options for the Citrix WAF AMI are called
+<a href="https://aws.amazon.com/marketplace/pp/B00AA01BOE">Citrix ADC VPX - Customer Licensed</a>. To use the BYOL model, you must have an AppFW feature enabled and must
+<a href="https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server">configure Citrix ADM as a licensing server</a>.
+Whether you deploy Citrix ADM on premises or as an agent in the cloud, you must use a reachable ADM IP as an input parameter when deploying the Quick Start.<br>
 <br>
 With the BYOL model, you choose one of the three modes:</p>
 <div class="ulist">
@@ -977,14 +987,14 @@ With the BYOL model, you choose one of the three modes:</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Deploying this Quick Start for a new virtual private cloud (VPC) with
-<strong>default parameters</strong> builds the following <em>Citrix Web App Firewall (WAF)</em> environment in the
+<strong>default parameters</strong> builds the following <em>Citrix WAF</em> environment in the
 AWS Cloud.</p>
 </div>
 <div id="architecture1" class="imageblock">
 <div class="content">
 <a class="image" href="images/architecture_diagram.png"><img src="images/architecture_diagram.png" alt="Architecture" width="648" height="439"></a>
 </div>
-<div class="title">Figure 2. Quick Start architecture for <em>Citrix Web App Firewall (WAF)</em> on AWS</div>
+<div class="title">Figure 2. Quick Start architecture for <em>Citrix WAF</em> on AWS</div>
 </div>
 <div class="paragraph">
 <p>As shown in <a href="#architecture1">Figure 2</a>, the Quick Start sets up the following:</p>
@@ -1150,55 +1160,9 @@ Cloud.</p>
 </table>
 </div>
 <div class="sect3">
-<h4 id="_supported_regions">Supported regions</h4>
+<h4 id="_supported_regions">Supported Regions</h4>
 <div class="paragraph">
-<p>The following regions are currently supported by this Quick Start.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>us-east-1 (N. Virginia)</p>
-</li>
-<li>
-<p>us-east-2 (Ohio)</p>
-</li>
-<li>
-<p>us-west-1 (N. California)</p>
-</li>
-<li>
-<p>us-west-2 (Oregon)</p>
-</li>
-<li>
-<p>ca-central-1 (Canada Central)</p>
-</li>
-<li>
-<p>eu-central-1 (Frankfurt)</p>
-</li>
-<li>
-<p>eu-west-1 (Ireland)</p>
-</li>
-<li>
-<p>eu-west-2 (London)</p>
-</li>
-<li>
-<p>ap-southeast-1 (Singapore)</p>
-</li>
-<li>
-<p>ap-southeast-2 (Sydney)</p>
-</li>
-<li>
-<p>ap-south-1 (Mumbai)</p>
-</li>
-<li>
-<p>ap-northeast-1 (Tokyo)</p>
-</li>
-<li>
-<p>ap-northeast-2 (Seoul)</p>
-</li>
-<li>
-<p>sa-east-1 (South America)</p>
-</li>
-</ul>
+<p>This deployment includes Citrix WAF, which isn’t currently supported in all AWS Regions. For a current list of supported Regions, see <a href="https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/vpx-aws-support-matrix.html">VPX-AWS support matrix</a> in the Citrix documentation.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -1207,7 +1171,7 @@ Cloud.</p>
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-Certain regions are available on an opt-in basis. Refer to the AWS Documentation on <a href="https://docs.aws.amazon.com/general/latest/gr/rande-manage.html" target="_blank" rel="noopener">Managing Regions</a> for more information.
+Certain Regions are available on an opt-in basis. Refer to the AWS Documentation on <a href="https://docs.aws.amazon.com/general/latest/gr/rande-manage.html" target="_blank" rel="noopener">Managing Regions</a> for more information.
 </td>
 </tr>
 </table>
@@ -1239,15 +1203,15 @@ Certain regions are available on an opt-in basis. Refer to the AWS Documentation
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Deploy Citrix Web App Firewall (WAF) into a new VPC (end-to-end deployment)</strong>. This option builds a new AWS environment consisting of the VPC, subnets, NAT gateways, security groups, bastion hosts, and other infrastructure components. It then deploys Citrix Web App Firewall (WAF) into this new VPC.</p>
+<p><strong>Deploy Citrix WAF into a new VPC (end-to-end deployment)</strong>. This option builds a new AWS environment consisting of the VPC, subnets, NAT gateways, security groups, bastion hosts, and other infrastructure components. It then deploys Citrix WAF into this new VPC.</p>
 </li>
 <li>
-<p><strong>Deploy Citrix Web App Firewall (WAF) into an existing VPC</strong>. This option provisions Citrix Web App Firewall (WAF) in your existing AWS infrastructure.</p>
+<p><strong>Deploy Citrix WAF into an existing VPC</strong>. This option provisions Citrix WAF in your existing AWS infrastructure.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>The Quick Start provides separate templates for these options. It also lets you configure Classless Inter-Domain Routing (CIDR) blocks, instance types, and Citrix Web App Firewall (WAF) settings, as discussed later in this guide.</p>
+<p>The Quick Start provides separate templates for these options. It also lets you configure Classless Inter-Domain Routing (CIDR) blocks, instance types, and Citrix WAF settings, as discussed later in this guide.</p>
 </div>
 </div>
 </div>
@@ -1273,9 +1237,9 @@ Certain regions are available on an opt-in basis. Refer to the AWS Documentation
 </div>
 </div>
 <div class="sect2">
-<h3 id="_subscribe_to_the_citrix_web_app_firewall_waf_ami">Subscribe to the Citrix Web App Firewall (WAF) AMI</h3>
+<h3 id="_subscribe_to_the_citrix_waf_ami">Subscribe to the Citrix WAF AMI</h3>
 <div class="paragraph">
-<p>This Quick Start requires a subscription to the AMI for Citrix Web App Firewall (WAF) in AWS Marketplace.</p>
+<p>This Quick Start requires a subscription to the AMI for Citrix WAF in AWS Marketplace.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -1283,7 +1247,7 @@ Certain regions are available on an opt-in basis. Refer to the AWS Documentation
 <p>Sign in to your AWS account.</p>
 </li>
 <li>
-<p>Review the AWS Marketplace pages for <a href="https://aws.amazon.com/marketplace/pp/B08286P96W?qid=1580407778935&amp;sr=0-9&amp;ref_=srh_res_product_title">Citrix WAF 200 Mbps</a> and <a href="https://aws.amazon.com/marketplace/pp/B08284R8P6?qid=1580407778935&amp;sr=0-10&amp;ref_=srh_res_product_title">Citrix WAF 1000 Mbps</a>. The VPX AMI instance requires a minimum of two virtual CPUs and 2 GB of memory. To retrieve the AMI ID, see <a href="https://github.com/citrix/citrix-adc-aws-cloudformation/blob/master/templates/README.md">Citrix Products on AWS Marketplace</a> on GitHub.</p>
+<p>For PAYG model, you can choose one of the following AWS Marketplace AMIs: <a href="https://aws.amazon.com/marketplace/pp/B08286P96W?qid=1580407778935&amp;sr=0-9&amp;ref_=srh_res_product_title">Citrix WAF 200 Mbps</a> and <a href="https://aws.amazon.com/marketplace/pp/B08284R8P6?qid=1580407778935&amp;sr=0-10&amp;ref_=srh_res_product_title">Citrix WAF 1000 Mbps</a>. For BYOL model, refer to the <a href="#_software_licenses">Software licenses</a> section to see the available options. To retrieve the AMI ID, see <a href="https://github.com/citrix/citrix-adc-aws-cloudformation/blob/master/templates/README.md">Citrix Products on AWS Marketplace</a> on GitHub.</p>
 </li>
 <li>
 <p>On the desired AWS Marketplace page, choose <strong>Continue to Subscribe.</strong></p>
@@ -1324,10 +1288,10 @@ You are responsible for the cost of the AWS services used while running this Qui
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://qs_launch_link" target="_blank" rel="noopener">Deploy Citrix Web App Firewall (WAF) into a new VPC on AWS</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fwd.aws/nb3Px" target="_blank" rel="noopener">Deploy Citrix WAF into a new VPC on AWS</a></p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://qs_launch_link" target="_blank" rel="noopener">Deploy Citrix Web App Firewall (WAF) into an existing VPC on AWS</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fwd.aws/WVQYn" target="_blank" rel="noopener">Deploy Citrix WAF into an existing VPC on AWS</a></p></td>
 </tr>
 </tbody>
 </table>
@@ -1338,13 +1302,11 @@ You are responsible for the cost of the AWS services used while running this Qui
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-If you’re deploying Citrix Web App Firewall (WAF) into an existing VPC, make sure that your VPC has two private subnets in different Availability Zones for the workload instances, and that the subnets aren’t shared. This Quick Start doesn’t support <a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-sharing.html" target="_blank" rel="noopener">shared subnets</a>. These subnets require <a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html" target="_blank" rel="noopener">NAT gateways</a> in their route tables, to allow the instances to download packages and software without exposing them to the internet.
+If you’re deploying Citrix WAF into an existing VPC, make sure that your VPC has two private subnets in different Availability Zones for the workload instances, and that the subnets aren’t shared. This Quick Start doesn’t support <a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-sharing.html" target="_blank" rel="noopener">shared subnets</a>. These subnets require <a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html" target="_blank" rel="noopener">NAT gateways</a> in their route tables, to allow the instances to download packages and software without exposing them to the internet.
+Also, make sure that the domain name option in the DHCP options is configured as explained in the <a href="http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_DHCP_Options.html" target="_blank" rel="noopener">Amazon VPC documentation</a>. You provide your VPC settings when you launch the Quick Start.
 </td>
 </tr>
 </table>
-</div>
-<div class="paragraph">
-<p>Also, make sure that the domain name option in the DHCP options is configured as explained in the <a href="http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_DHCP_Options.html" target="_blank" rel="noopener">Amazon VPC documentation</a>. You provide your VPC settings when you launch the Quick Start.</p>
 </div>
 <div class="paragraph">
 <p>Each deployment takes about 15 minutes to complete.</p>
@@ -1352,7 +1314,7 @@ If you’re deploying Citrix Web App Firewall (WAF) into an existing VPC, make s
 <div class="olist arabic">
 <ol class="arabic" start="2">
 <li>
-<p>Check the AWS Region that’s displayed in the upper-right corner of the navigation bar, and change it if necessary. This is where the network infrastructure for Citrix Web App Firewall (WAF) will be built. The template is launched in the us-east-2 Region by default.</p>
+<p>Check the AWS Region that’s displayed in the upper-right corner of the navigation bar, and change it if necessary. This is where the network infrastructure for Citrix WAF will be built. The template is launched in the us-east-2 Region by default.</p>
 </li>
 </ol>
 </div>
@@ -1404,7 +1366,7 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <td class="tableblock halign-left valign-top"><p class="tableblock">VPC ID
 (<code>VPCID</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The ID of your existing VPC (e.g., vpc-0343606e).</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ID of your existing VPC (e.g., vpc-0343606e).</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Bastion security group ID
@@ -1419,7 +1381,7 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <td class="tableblock halign-left valign-top"><p class="tableblock">A CIDR block that is allowed to access the bastion host(if present) or WAF management interface on port 22. We recommend that you use a constrained CIDR range to reduce the potential of inbound attacks from unknown IP addresses. Note:  Since the WAF management interface is deployed in a private subnet, you will need to initiate the SSH connection from a host with network connectivity to this private subnet, like bastion host or on-prem host with Direct Connect.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Restricted Web App CIDR
+<td class="tableblock halign-left valign-top"><p class="tableblock">Restricted web app CIDR
 (<code>RestrictedWebAppCIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">A CIDR block that is allowed to access the web apps behind WAF on TCP ports 80, 443. We recommend that you use a constrained CIDR range to reduce the potential of inbound attacks from unknown IP addresses. Using 0.0.0.0/0, will enable all IP addresses to access your instance using SSH.</p></td>
@@ -1428,73 +1390,73 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <td class="tableblock halign-left valign-top"><p class="tableblock">Primary management private subnet ID
 (<code>PrimaryManagementPrivateSubnetID</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Private subnet ID of an existing subnet dedicated for primary management ENI.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Private subnet ID of an existing subnet dedicated for primary management network interface.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Primary client public subnet ID
 (<code>PrimaryClientPublicSubnetID</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Public subnet ID of an existing subnet dedicated for primary client ENI.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Public subnet ID of an existing subnet dedicated for primary client network interface.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Primary server private subnet ID
 (<code>PrimaryServerPrivateSubnetID</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Private subnet ID of an existing subnet dedicated for primary server ENI.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Private subnet ID of an existing subnet dedicated for primary server network interface.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Secondary management private subnet ID
 (<code>SecondaryManagementPrivateSubnetID</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Private subnet ID of an existing subnet dedicated for secondary management ENI.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Private subnet ID of an existing subnet dedicated for secondary management network interface.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Secondary client public subnet ID
 (<code>SecondaryClientPublicSubnetID</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Public subnet ID of an existing subnet dedicated for secondary client ENI.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Public subnet ID of an existing subnet dedicated for secondary client network interface.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Secondary server private subnet ID
 (<code>SecondaryServerPrivateSubnetID</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Private subnet ID of an existing subnet dedicated for secondary server ENI.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Private subnet ID of an existing subnet dedicated for secondary server network interface.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Primary management private IP (NSIP)
 (<code>PrimaryManagementPrivateIP</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) This is the management private IP address of the primary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the primary management subnet CIDR.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Management private IP address of the primary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the primary management subnet CIDR.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Primary client private IP (VIP)
 (<code>PrimaryClientPrivateIP</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) This is the client private IP address of the primary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the primary client subnet CIDR.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Client private IP address of the primary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the primary client subnet CIDR.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Primary server private IP (SNIP)
 (<code>PrimaryServerPrivateIP</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) This is the server private IP address of the primary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the primary server subnet CIDR.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Server private IP address of the primary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the primary server subnet CIDR.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Secondary management private IP (NSIP)
 (<code>SecondaryManagementPrivateIP</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) This is the management private IP address of the secondary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the secondary management subnet CIDR.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Management private IP address of the secondary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the secondary management subnet CIDR.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Secondary client private IP (VIP)
 (<code>SecondaryClientPrivateIP</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) This is the client private IP address of the secondary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the secondary client subnet CIDR.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Client private IP address of the secondary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the secondary client subnet CIDR.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Secondary server private IP (SNIP)
 (<code>SecondaryServerPrivateIP</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) This is the server private IP address of the secondary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the secondary server subnet CIDR.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Server private IP address of the secondary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the secondary server subnet CIDR.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">VPC tenancy attribute
@@ -1534,25 +1496,25 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Citrix WAF AMI ID
 (<code>CitrixADCImageID</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) The AMI ID of the Citrix WAF to be provisioned. If you are opting for pooled license from ADM, enter the latest BYOL AMI ID. If opting for subscription license, specify AMI ID of the Citrix WAF to be provisioned. If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (<a href="https://aws.amazon.com/marketplace/pp/B08286P96W)"" class="bare">https://aws.amazon.com/marketplace/pp/B08286P96W)"</a> is provisioned by default.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) The AMI ID of the Citrix WAF to be provisioned. If you are opting for pooled license from ADM, enter the latest BYOL AMI ID. If opting for a PAYG subscription license, enter the AMI ID of the Citrix WAF to be provisioned. If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (<a href="https://aws.amazon.com/marketplace/pp/B08286P96W)"" class="bare">https://aws.amazon.com/marketplace/pp/B08286P96W)"</a> is provisioned by default.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Citrix WAF IAM role
 (<code>CitrixADCIAMRole</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If left empty, the deployment will create the required IAM role. Refer to <a href="https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/prerequisites.html" class="bare">https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/prerequisites.html</a> for more details</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Assign Elastic IP address to client VIP
 (<code>ClientEIPRequired</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Yes</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Choose No to assign client elastic IP address manually after the deployment.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Choose No to assign client Elastic IP address manually after the deployment.</p></td>
 </tr>
 </tbody>
 </table>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 3. Pooled licensing configuration</caption>
+<caption class="title">Table 3. Licensing configuration</caption>
 <colgroup>
 <col style="width: 16%;">
 <col style="width: 11%;">
@@ -1570,18 +1532,18 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <td class="tableblock halign-left valign-top"><p class="tableblock">Pooled license from ADM
 (<code>PooledLicense</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>No</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">If choosing BYOL option for licensing, choose Yes from dropdown. This would allow you to upload your already purchased licenses. Note: Before using the Yes option, configure Citrix ADM as a license server for the Citrix ADC pooled capacity. Refer to <a href="https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server" class="bare">https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server</a> for details.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If choosing BYOL option for licensing, choose Yes. This would allow you to upload your already purchased licenses. Before choosing Yes, configure Citrix ADM as a license server for the Citrix ADC pooled capacity. Refer to <a href="https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server" class="bare">https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server</a> for details.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Citrix ADM IP address
 (<code>ADMIP</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) The IP address of the Citrix ADM (deployed either on-prem or as an agent in cloud) reachable from the ADC instances.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Licensing mode
 (<code>LicensingMode</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) By default, Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (<a href="https://aws.amazon.com/marketplace/pp/B08286P96W" class="bare">https://aws.amazon.com/marketplace/pp/B08286P96W</a>) is provisioned. If you are opting for the BYOL license from ADM,
   choose Yes for PooledLicense, enter latest BYOL AMI ID in CitrixADCImageID field and choose one of the three licensing modes:
   Pooled-Licensing, Check in Check Out Licensing (CICO-Licensing), CPU-Licensing.</p></td>
@@ -1590,7 +1552,7 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <td class="tableblock halign-left valign-top"><p class="tableblock">License bandwidth in Mbps
 (<code>Bandwidth</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>0</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) This is used only if the licensing mode is Pooled-Licensing. It allocates an initial bandwidth of the license in Mbps to be allocated after BYOL ADCs are created. Should be multiple of 10 Mbps.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Specify only if the licensing mode is Pooled-Licensing. It allocates an initial bandwidth of the license in Mbps to be allocated after BYOL ADCs are created. If using, enter a multiple of 10 Mbps.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Pooled edition
@@ -1601,8 +1563,8 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Appliance platform type
 (<code>Platform</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) License platform. This is needed only if licensing mode is CICO-Licensing.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Appliance platform type for vCPU licensing mode. When licensing mode is CICO-Licensing, you can choose from the following four options: VPX-200, VPX-1000, VPX-3000, VPX-5000.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">vCPU Edition
@@ -1669,13 +1631,13 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <td class="tableblock halign-left valign-top"><p class="tableblock">Primary Availability Zone
 (<code>PrimaryAvailabilityZone</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The Availability Zone for primary Citrix WAF deployment.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Availability Zone for primary Citrix WAF deployment.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Secondary Availability Zone
 (<code>SecondaryAvailabilityZone</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The Availability Zone for secondary Citrix WAF deployment.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Availability Zone for secondary Citrix WAF deployment.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">VPC CIDR
@@ -1684,7 +1646,7 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <td class="tableblock halign-left valign-top"><p class="tableblock">The CIDR block for the VPC. Must be a valid IP CIDR range of the form x.x.x.x/x.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Restricted Web App CIDR
+<td class="tableblock halign-left valign-top"><p class="tableblock">Restricted web app CIDR
 (<code>RestrictedWebAppCIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">A CIDR block that is allowed to access the web apps behind WAF on TCP ports 80, 443. We recommend that you use a constrained CIDR range to reduce the potential of inbound attacks from unknown IP addresses. Using 0.0.0.0/0, will enable all IP addresses to access your instance using SSH.</p></td>
@@ -1699,73 +1661,73 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <td class="tableblock halign-left valign-top"><p class="tableblock">Primary management private subnet CIDR
 (<code>PrimaryManagementPrivateSubnetCIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.1.0/24</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The CIDR block for the primary management private subnet located in the primary Availability Zone.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block for the primary management private subnet located in the primary Availability Zone.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Primary client public subnet CIDR
 (<code>PrimaryClientPublicSubnetCIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.2.0/24</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The CIDR block for the primary client public subnet located in the primary Availability Zone.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block for the primary client public subnet located in the primary Availability Zone.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Primary server private subnet CIDR
 (<code>PrimaryServerPrivateSubnetCIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.3.0/24</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The CIDR block for the primary server private subnet located in the primary Availability Zone.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block for the primary server private subnet located in the primary Availability Zone.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Secondary management private subnet CIDR
 (<code>SecondaryManagementPrivateSubnetCIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.4.0/24</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The CIDR block for the secondary management private subnet located in the secondary Availability Zone.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block for the secondary management private subnet located in the secondary Availability Zone.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Secondary client public subnet CIDR
 (<code>SecondaryClientPublicSubnetCIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.5.0/24</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The CIDR block for the secondary client public subnet located in the secondary Availability Zone.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block for the secondary client public subnet located in the secondary Availability Zone.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Secondary server private subnet CIDR
 (<code>SecondaryServerPrivateSubnetCIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.6.0/24</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The CIDR block for the secondary server private subnet located in the secondary Availability Zone.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block for the secondary server private subnet located in the secondary Availability Zone.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Primary management private IP (NSIP)
 (<code>PrimaryManagementPrivateIP</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) This is the management private IP address of the primary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the primary management subnet CIDR.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Management private IP address of the primary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the primary management subnet CIDR.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Primary client private IP (VIP)
 (<code>PrimaryClientPrivateIP</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) This is the client private IP address of the primary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the primary client subnet CIDR.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Client private IP address of the primary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the primary client subnet CIDR.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Primary server private IP (SNIP)
 (<code>PrimaryServerPrivateIP</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) This is the server private IP address of the primary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the primary server subnet CIDR.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Server private IP address of the primary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the primary server subnet CIDR.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Secondary management private IP (NSIP)
 (<code>SecondaryManagementPrivateIP</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) This is the management private IP address of the secondary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the secondary management subnet CIDR.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Management private IP address of the secondary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the secondary management subnet CIDR.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Secondary client private IP (VIP)
 (<code>SecondaryClientPrivateIP</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) This is the client private IP address of the secondary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the secondary client subnet CIDR.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Client private IP address of the secondary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the secondary client subnet CIDR.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Secondary server private IP (SNIP)
 (<code>SecondaryServerPrivateIP</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) This is the server private IP address of the secondary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the secondary server subnet CIDR.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Server private IP address of the secondary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the secondary server subnet CIDR.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">VPC tenancy attribute
@@ -1794,7 +1756,7 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <td class="tableblock halign-left valign-top"><p class="tableblock">Create bastion host
 (<code>BastionRequired</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>No</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">By default, no bastion host is configured. For a sandbox deployment, choose Yes from drop down which would deploy a Linux bastion host in the public subnet with an Elastic IP address that would give you access to the components in private and public subnet.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For a sandbox deployment, choose Yes from the dropdown list. This deploys a Linux bastion host in the public subnet with an Elastic IP address that gives you access to the components in the private and public subnets.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1828,25 +1790,25 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Citrix WAF AMI ID
 (<code>CitrixADCImageID</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) The AMI ID of the Citrix WAF to be provisioned. If you are opting for pooled license from ADM, enter the latest BYOL AMI ID. If opting for subscription license, specify AMI ID of the Citrix WAF to be provisioned. If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (<a href="https://aws.amazon.com/marketplace/pp/B08286P96W)"" class="bare">https://aws.amazon.com/marketplace/pp/B08286P96W)"</a> is provisioned by default.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) The AMI ID of the Citrix WAF to be provisioned. If you are opting for pooled license from ADM, enter the latest BYOL AMI ID. If opting for a PAYG subscription license, enter the AMI ID of the Citrix WAF to be provisioned. If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (<a href="https://aws.amazon.com/marketplace/pp/B08286P96W)"" class="bare">https://aws.amazon.com/marketplace/pp/B08286P96W)"</a> is provisioned by default.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Citrix WAF IAM role
 (<code>CitrixADCIAMRole</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If left empty, the deployment will create the required IAM role. Refer to <a href="https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/prerequisites.html" class="bare">https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/prerequisites.html</a> for more details</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Assign Elastic IP address to client VIP
 (<code>ClientEIPRequired</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Yes</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Choose No to assign client elastic IP address manually after the deployment.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Choose No to assign client Elastic IP address manually after the deployment.</p></td>
 </tr>
 </tbody>
 </table>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 8. Pooled licensing configuration</caption>
+<caption class="title">Table 8. Licensing configuration</caption>
 <colgroup>
 <col style="width: 16%;">
 <col style="width: 11%;">
@@ -1864,18 +1826,18 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <td class="tableblock halign-left valign-top"><p class="tableblock">Pooled license from ADM
 (<code>PooledLicense</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>No</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">If choosing BYOL option for licensing, choose Yes from dropdown. This would allow you to upload your already purchased licenses. Before choosing Yes, configure Citrix ADM as a license server for the Citrix ADC pooled capacity. Refer to <a href="https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server" class="bare">https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server</a> for details.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If choosing BYOL option for licensing, choose Yes. This would allow you to upload your already purchased licenses. Before choosing Yes, configure Citrix ADM as a license server for the Citrix ADC pooled capacity. Refer to <a href="https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server" class="bare">https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server</a> for details.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Citrix ADM IP address
 (<code>ADMIP</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) The IP address of the Citrix ADM (deployed either on-prem or as an agent in cloud) reachable from the ADC instances.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Licensing mode
 (<code>LicensingMode</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) By default, Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (<a href="https://aws.amazon.com/marketplace/pp/B08286P96W" class="bare">https://aws.amazon.com/marketplace/pp/B08286P96W</a>) is provisioned. If you are opting for the BYOL license from ADM,
   choose Yes for PooledLicense, enter latest BYOL AMI ID in CitrixADCImageID field and choose one of the three licensing modes:
   Pooled-Licensing, Check in Check Out Licensing (CICO-Licensing), CPU-Licensing.</p></td>
@@ -1884,7 +1846,7 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <td class="tableblock halign-left valign-top"><p class="tableblock">License bandwidth in Mbps
 (<code>Bandwidth</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>0</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) This is used only if the licensing mode is Pooled-Licensing. It allocates an initial bandwidth of the license in Mbps to be allocated after BYOL ADCs are created. Should be multiple of 10 Mbps.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Specify only if the licensing mode is Pooled-Licensing. It allocates an initial bandwidth of the license in Mbps to be allocated after BYOL ADCs are created. If using, enter a multiple of 10 Mbps.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Pooled edition
@@ -1895,8 +1857,8 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Appliance platform type
 (<code>Platform</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) License platform. This is needed only if licensing mode is CICO-Licensing.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>Optional</em></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Appliance platform type for vCPU licensing mode. When licensing mode is CICO-Licensing, you can choose from the following four options: VPX-200, VPX-1000, VPX-3000, VPX-5000.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">vCPU Edition
@@ -1953,18 +1915,18 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <p>Choose <strong>Create stack</strong> to deploy the stack.</p>
 </li>
 <li>
-<p>Monitor the status of the stack. When the status is <strong>CREATE_COMPLETE</strong>, the Citrix Web App Firewall (WAF) deployment is ready.</p>
+<p>Monitor the status of the stack. When the status is <strong>CREATE_COMPLETE</strong>, the Citrix WAF deployment is ready.</p>
 </li>
 <li>
-<p>Use the values displayed in the <strong>Outputs</strong> tab for the stack, as shown in figure 2, to view the created resources.</p>
+<p>Use the values displayed in the <strong>Outputs</strong> tab for the stack, as shown in <a href="#cfn_outputs">Figure 3</a>, to view the created resources.</p>
 </li>
 </ol>
 </div>
 <div id="cfn_outputs" class="imageblock">
 <div class="content">
-<img src="images/cfn_outputs.png" alt="cfn_outputs" width="648" height="439">
+<a class="image" href="images/cfn_outputs.png"><img src="images/cfn_outputs.png" alt="cfn_outputs" width="648" height="439"></a>
 </div>
-<div class="title">Figure 3. Citrix Web App Firewall (WAF) outputs after successful deployment</div>
+<div class="title">Figure 3. Citrix WAF outputs after successful deployment</div>
 </div>
 </div>
 </div>
@@ -1982,13 +1944,10 @@ Region</code>, and <code>Quick Start S3 key prefix</code>. Changing these parame
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>By means of a proxy server, a jump host (a Linux/Windows/FW instance running in AWS, or the bastion host) or another device reachable to that VPC or a Direct Connect if dealing with on-prem connectivity.</p>
+<p>You can connect to the primary Citrix WAF instance by using a proxy server, a jump host (a Linux/Windows/FW instance running in AWS, or the bastion host) or another device reachable to that VPC or a Direct Connect if dealing with on-prem connectivity.</p>
 </li>
 <li>
-<p>Make the management network interface reachable from outside the VPC.</p>
-</li>
-<li>
-<p>Connect to the primary Citrix WAF instance directly using SSH connecting to the NSIP with username nsroot and the password being the instance ID for the primary instance.<br>
+<p>Alternatively, you can make the management network interface reachable from outside the VPC. And then, connect to the primary Citrix WAF instance directly using SSH connecting to the NSIP with username nsroot and the password being the instance ID for the primary instance.<br>
 <br>
 For testing purpose, attach two Elastic IP addresses with the primary instance so as to make the management network interface reachable from outside, one with client network interface (VIP) and the other with management interface (NSIP). To get administrative access to the primary WAF instance,
 use the IPv4 public IP associated with the eth0 interface as shown in <a href="#testStep1">Figure 4</a>.</p>
@@ -2023,7 +1982,7 @@ use the IPv4 public IP associated with the eth0 interface as shown in <a href="#
 <div class="olist arabic">
 <ol class="arabic" start="3">
 <li>
-<p>To store the key in your keychain, run the command ssh-add -K <em>&lt;your-key-pair&gt;</em>.pem. (On Linux terminal, you might need to omit the -K flag.)</p>
+<p>To store the key in your keychain, run the command <code>ssh-add -K <em>&lt;your-key-pair&gt;</em>.pem</code>. (On Linux terminal, you might need to omit the -K flag.)</p>
 </li>
 <li>
 <p>Log in to the bastion host using the following command, using the value for <strong>LinuxBastionHostEIP1</strong> that you noted in step 2.</p>
@@ -2038,7 +1997,7 @@ use the IPv4 public IP associated with the eth0 interface as shown in <a href="#
 <div class="olist arabic">
 <ol class="arabic" start="5">
 <li>
-<p>From the bastion host, as shown in <a href="#testStep3">Figure 6</a>, you can connect to the primary WAF instance by using SSH with username <strong>nsroot</strong> and <strong>PrimaryManagementPrivateNSIP</strong> (associated with eth0) and password being <strong>PrimaryADCInstance ID</strong> noted in step 2.</p>
+<p>From the bastion host, as shown in <a href="#testStep3">Figure 6</a>, you can connect to the primary WAF instance by using SSH with username <strong>nsroot</strong> and <strong>PrimaryManagementPrivateNSIP</strong> (associated with eth0) and password being <strong>PrimaryADCInstanceID</strong> noted in step 2.</p>
 </li>
 </ol>
 </div>
@@ -2342,7 +2301,7 @@ and to share your customizations with others.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-08-19 03:53:52 UTC
+Last updated 2020-08-21 22:47:18 UTC
 </div>
 </div>
 </body>

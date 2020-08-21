@@ -11,6 +11,18 @@ Description: "
 Metadata:
   QuickStartDocumentation:
     EntrypointName: "Launch into an existing VPC"
+    OptionalParameters:
+      - PrimaryManagementPrivateIP
+      - PrimaryClientPrivateIP
+      - PrimaryServerPrivateIP
+      - SecondaryManagementPrivateIP
+      - SecondaryClientPrivateIP
+      - SecondaryServerPrivateIP
+      - CitrixADCImageID
+      - CitrixADCIAMRole
+      - ADMIP
+      - LicensingMode
+      - Platform
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
@@ -44,7 +56,7 @@ Metadata:
           - ClientEIPRequired
 
       - Label:
-          default: Pooled licensing configuration
+          default: Licensing configuration
         Parameters:
           - PooledLicense
           - ADMIP
@@ -99,7 +111,7 @@ Metadata:
       VPCTenancy:
         default: VPC tenancy attribute
       RestrictedWebAppCIDR:
-        default: Restricted Web App CIDR
+        default: Restricted web app CIDR
       RestrictedSSHCIDR:
         default: Restricted SSH CIDR
       KeyPairName:
@@ -138,10 +150,10 @@ Parameters:
     Type: String
     Default: ""
     Description: >-
-      (Optional) The AMI ID of the Citrix WAF to be provisioned. If you are opting for pooled license from ADM, enter the latest BYOL AMI ID. If opting for subscription license, specify AMI ID of the Citrix WAF to be provisioned. If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (https://aws.amazon.com/marketplace/pp/B08286P96W)" is provisioned by default.
+      (Optional) The AMI ID of the Citrix WAF to be provisioned. If you are opting for pooled license from ADM, enter the latest BYOL AMI ID. If opting for a PAYG subscription license, enter the AMI ID of the Citrix WAF to be provisioned. If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (https://aws.amazon.com/marketplace/pp/B08286P96W)" is provisioned by default.
   VPCID:
     Type: AWS::EC2::VPC::Id
-    Description: The ID of your existing VPC (e.g., vpc-0343606e).
+    Description: ID of your existing VPC (e.g., vpc-0343606e).
   VPCTenancy:
     Description: The allowed tenancy of instances launched into the VPC. Choose dedicated to launch EC2 instances dedicated to a single customer.
     Type: String
@@ -152,57 +164,57 @@ Parameters:
   PrimaryManagementPrivateSubnetID:
     Type: AWS::EC2::Subnet::Id
     Description: >-
-      Private subnet ID of an existing subnet dedicated for primary management ENI.
+      Private subnet ID of an existing subnet dedicated for primary management network interface.
   PrimaryClientPublicSubnetID:
     Type: AWS::EC2::Subnet::Id
     Description: >-
-      Public subnet ID of an existing subnet dedicated for primary client ENI.
+      Public subnet ID of an existing subnet dedicated for primary client network interface.
   PrimaryServerPrivateSubnetID:
     Type: AWS::EC2::Subnet::Id
     Description: >-
-      Private subnet ID of an existing subnet dedicated for primary server ENI.
+      Private subnet ID of an existing subnet dedicated for primary server network interface.
   SecondaryManagementPrivateSubnetID:
     Type: AWS::EC2::Subnet::Id
     Description: >-
-      Private subnet ID of an existing subnet dedicated for secondary management ENI.
+      Private subnet ID of an existing subnet dedicated for secondary management network interface.
   SecondaryClientPublicSubnetID:
     Type: AWS::EC2::Subnet::Id
     Description: >-
-      Public subnet ID of an existing subnet dedicated for secondary client ENI.
+      Public subnet ID of an existing subnet dedicated for secondary client network interface.
   SecondaryServerPrivateSubnetID:
     Type: AWS::EC2::Subnet::Id
     Description: >-
-      Private subnet ID of an existing subnet dedicated for secondary server ENI.
+      Private subnet ID of an existing subnet dedicated for secondary server network interface.
   PrimaryManagementPrivateIP:
     Default: ""
     Type: String
     Description: >-
-      (Optional) This is the management private IP address of the primary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the primary management subnet CIDR.
+      (Optional) Management private IP address of the primary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the primary management subnet CIDR.
   PrimaryClientPrivateIP:
     Default: ""
     Type: String
     Description: >-
-      (Optional) This is the client private IP address of the primary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the primary client subnet CIDR.
+      (Optional) Client private IP address of the primary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the primary client subnet CIDR.
   PrimaryServerPrivateIP:
     Default: ""
     Type: String
     Description: >-
-      (Optional) This is the server private IP address of the primary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the primary server subnet CIDR.
+      (Optional) Server private IP address of the primary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the primary server subnet CIDR.
   SecondaryManagementPrivateIP:
     Default: ""
     Type: String
     Description: >-
-      (Optional) This is the management private IP address of the secondary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the secondary management subnet CIDR.
+      (Optional) Management private IP address of the secondary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the secondary management subnet CIDR.
   SecondaryClientPrivateIP:
     Default: ""
     Type: String
     Description: >-
-      (Optional) This is the client private IP address of the secondary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the secondary client subnet CIDR.
+      (Optional) Client private IP address of the secondary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the secondary client subnet CIDR.
   SecondaryServerPrivateIP:
     Default: ""
     Type: String
     Description: >-
-      (Optional) This is the server private IP address of the secondary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the secondary server subnet CIDR.
+      (Optional) Server private IP address of the secondary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the secondary server subnet CIDR.
   BastionSecurityGroupID:
     Type: String
     Default: ""
@@ -313,8 +325,8 @@ Parameters:
 
   PooledLicense:
     Description: >-
-      If choosing BYOL option for licensing, choose Yes from dropdown. This would allow you to upload your already purchased licenses.
-      Note: Before using the Yes option, configure Citrix ADM as a license server for the Citrix ADC pooled capacity. Refer to https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server for details.
+      If choosing BYOL option for licensing, choose Yes. This would allow you to upload your already purchased licenses.
+      Before choosing Yes, configure Citrix ADM as a license server for the Citrix ADC pooled capacity. Refer to https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server for details.
     Type: String
     Default: "No"
     AllowedValues:
@@ -339,7 +351,7 @@ Parameters:
     Default: ""
   Bandwidth:
     Description: >-
-      (Optional) This is used only if the licensing mode is Pooled-Licensing. It allocates an initial bandwidth of the license in Mbps to be allocated after BYOL ADCs are created. Should be multiple of 10 Mbps.
+      (Optional) Specify only if the licensing mode is Pooled-Licensing. It allocates an initial bandwidth of the license in Mbps to be allocated after BYOL ADCs are created. If using, enter a multiple of 10 Mbps.
     Type: Number
     Default: 0
   PooledEdition:
@@ -355,7 +367,7 @@ Parameters:
     AllowedValues:
       - Premium
   Platform:
-    Description: "(Optional) License platform. This is needed only if licensing mode is CICO-Licensing."
+    Description: "(Optional) Appliance platform type for vCPU licensing mode. When licensing mode is CICO-Licensing, you can choose from the following four options: VPX-200, VPX-1000, VPX-3000, VPX-5000."
     Type: String
     Default: ""
     AllowedValues:
@@ -367,7 +379,7 @@ Parameters:
   ClientEIPRequired:
     Type: String
     Default: "Yes"
-    Description: Choose No to assign client elastic IP address manually after the deployment.
+    Description: Choose No to assign client Elastic IP address manually after the deployment.
     AllowedValues:
       - "No"
       - "Yes"

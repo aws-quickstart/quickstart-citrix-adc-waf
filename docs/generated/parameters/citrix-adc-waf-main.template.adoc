@@ -3,30 +3,30 @@
 [width="100%",cols="16%,11%,73%",options="header",]
 |===
 |Parameter label (name) |Default value|Description|Primary Availability Zone
-(`PrimaryAvailabilityZone`)|`**__Requires input__**`|The Availability Zone for primary Citrix WAF deployment.|Secondary Availability Zone
-(`SecondaryAvailabilityZone`)|`**__Requires input__**`|The Availability Zone for secondary Citrix WAF deployment.|VPC CIDR
-(`VPCCIDR`)|`10.0.0.0/16`|The CIDR block for the VPC. Must be a valid IP CIDR range of the form x.x.x.x/x.|Restricted Web App CIDR
+(`PrimaryAvailabilityZone`)|`**__Requires input__**`|Availability Zone for primary Citrix WAF deployment.|Secondary Availability Zone
+(`SecondaryAvailabilityZone`)|`**__Requires input__**`|Availability Zone for secondary Citrix WAF deployment.|VPC CIDR
+(`VPCCIDR`)|`10.0.0.0/16`|The CIDR block for the VPC. Must be a valid IP CIDR range of the form x.x.x.x/x.|Restricted web app CIDR
 (`RestrictedWebAppCIDR`)|`**__Requires input__**`|A CIDR block that is allowed to access the web apps behind WAF on TCP ports 80, 443. We recommend that you use a constrained CIDR range to reduce the potential of inbound attacks from unknown IP addresses. Using 0.0.0.0/0, will enable all IP addresses to access your instance using SSH.|Restricted SSH CIDR
 (`RestrictedSSHCIDR`)|`**__Requires input__**`|A CIDR block that is allowed to access the bastion host(if present) or WAF management interface on port 22. We recommend that you use a constrained CIDR range to reduce the potential of inbound attacks from unknown IP addresses. Note:  Since the WAF management interface is deployed in a private subnet, you will need to initiate the SSH connection from a host with network connectivity to this private subnet, like bastion host or on-prem host with Direct Connect.|Primary management private subnet CIDR
-(`PrimaryManagementPrivateSubnetCIDR`)|`10.0.1.0/24`|The CIDR block for the primary management private subnet located in the primary Availability Zone.|Primary client public subnet CIDR
-(`PrimaryClientPublicSubnetCIDR`)|`10.0.2.0/24`|The CIDR block for the primary client public subnet located in the primary Availability Zone.|Primary server private subnet CIDR
-(`PrimaryServerPrivateSubnetCIDR`)|`10.0.3.0/24`|The CIDR block for the primary server private subnet located in the primary Availability Zone.|Secondary management private subnet CIDR
-(`SecondaryManagementPrivateSubnetCIDR`)|`10.0.4.0/24`|The CIDR block for the secondary management private subnet located in the secondary Availability Zone.|Secondary client public subnet CIDR
-(`SecondaryClientPublicSubnetCIDR`)|`10.0.5.0/24`|The CIDR block for the secondary client public subnet located in the secondary Availability Zone.|Secondary server private subnet CIDR
-(`SecondaryServerPrivateSubnetCIDR`)|`10.0.6.0/24`|The CIDR block for the secondary server private subnet located in the secondary Availability Zone.|Primary management private IP (NSIP)
-(`PrimaryManagementPrivateIP`)|`**__Requires input__**`|(Optional) This is the management private IP address of the primary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the primary management subnet CIDR.|Primary client private IP (VIP)
-(`PrimaryClientPrivateIP`)|`**__Requires input__**`|(Optional) This is the client private IP address of the primary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the primary client subnet CIDR.|Primary server private IP (SNIP)
-(`PrimaryServerPrivateIP`)|`**__Requires input__**`|(Optional) This is the server private IP address of the primary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the primary server subnet CIDR.|Secondary management private IP (NSIP)
-(`SecondaryManagementPrivateIP`)|`**__Requires input__**`|(Optional) This is the management private IP address of the secondary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the secondary management subnet CIDR.|Secondary client private IP (VIP)
-(`SecondaryClientPrivateIP`)|`**__Requires input__**`|(Optional) This is the client private IP address of the secondary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the secondary client subnet CIDR.|Secondary server private IP (SNIP)
-(`SecondaryServerPrivateIP`)|`**__Requires input__**`|(Optional) This is the server private IP address of the secondary Citrix WAF instance (last octet must be between 5 and 254). It is automatically assigned from the secondary server subnet CIDR.|VPC tenancy attribute
+(`PrimaryManagementPrivateSubnetCIDR`)|`10.0.1.0/24`|CIDR block for the primary management private subnet located in the primary Availability Zone.|Primary client public subnet CIDR
+(`PrimaryClientPublicSubnetCIDR`)|`10.0.2.0/24`|CIDR block for the primary client public subnet located in the primary Availability Zone.|Primary server private subnet CIDR
+(`PrimaryServerPrivateSubnetCIDR`)|`10.0.3.0/24`|CIDR block for the primary server private subnet located in the primary Availability Zone.|Secondary management private subnet CIDR
+(`SecondaryManagementPrivateSubnetCIDR`)|`10.0.4.0/24`|CIDR block for the secondary management private subnet located in the secondary Availability Zone.|Secondary client public subnet CIDR
+(`SecondaryClientPublicSubnetCIDR`)|`10.0.5.0/24`|CIDR block for the secondary client public subnet located in the secondary Availability Zone.|Secondary server private subnet CIDR
+(`SecondaryServerPrivateSubnetCIDR`)|`10.0.6.0/24`|CIDR block for the secondary server private subnet located in the secondary Availability Zone.|Primary management private IP (NSIP)
+(`PrimaryManagementPrivateIP`)|`__Optional__`|(Optional) Management private IP address of the primary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the primary management subnet CIDR.|Primary client private IP (VIP)
+(`PrimaryClientPrivateIP`)|`__Optional__`|(Optional) Client private IP address of the primary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the primary client subnet CIDR.|Primary server private IP (SNIP)
+(`PrimaryServerPrivateIP`)|`__Optional__`|(Optional) Server private IP address of the primary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the primary server subnet CIDR.|Secondary management private IP (NSIP)
+(`SecondaryManagementPrivateIP`)|`__Optional__`|(Optional) Management private IP address of the secondary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the secondary management subnet CIDR.|Secondary client private IP (VIP)
+(`SecondaryClientPrivateIP`)|`__Optional__`|(Optional) Client private IP address of the secondary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the secondary client subnet CIDR.|Secondary server private IP (SNIP)
+(`SecondaryServerPrivateIP`)|`__Optional__`|(Optional) Server private IP address of the secondary Citrix WAF instance. If you enter an address, choose a number between 5 and 254 for the last octet. If you enter no address, one is automatically assigned from the secondary server subnet CIDR.|VPC tenancy attribute
 (`VPCTenancy`)|`default`|The allowed tenancy of instances launched into the VPC. Choose dedicated to launch EC2 instances dedicated to a single customer.
 |===
 .Bastion host configuration
 [width="100%",cols="16%,11%,73%",options="header",]
 |===
 |Parameter label (name) |Default value|Description|Create bastion host
-(`BastionRequired`)|`No`|By default, no bastion host is configured. For a sandbox deployment, choose Yes from drop down which would deploy a Linux bastion host in the public subnet with an Elastic IP address that would give you access to the components in private and public subnet.
+(`BastionRequired`)|`No`|For a sandbox deployment, choose Yes from the dropdown list. This deploys a Linux bastion host in the public subnet with an Elastic IP address that gives you access to the components in the private and public subnets.
 |===
 .Citrix WAF configuration
 [width="100%",cols="16%,11%,73%",options="header",]
@@ -34,22 +34,22 @@
 |Parameter label (name) |Default value|Description|Key pair name
 (`KeyPairName`)|`**__Requires input__**`|Name of an existing public/private key pair. If you do not have one in this AWS Region, create it before continuing.|Citrix WAF instance type
 (`CitrixADCInstanceType`)|`m4.xlarge`|The EC2 instance type to use for the WAF instances. Choose an instance type that’s available in the AWS Marketplace for the Region of deployment.|Citrix WAF AMI ID
-(`CitrixADCImageID`)|`**__Requires input__**`|(Optional) The AMI ID of the Citrix WAF to be provisioned. If you are opting for pooled license from ADM, enter the latest BYOL AMI ID. If opting for subscription license, specify AMI ID of the Citrix WAF to be provisioned. If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (https://aws.amazon.com/marketplace/pp/B08286P96W)" is provisioned by default.|Citrix WAF IAM role
-(`CitrixADCIAMRole`)|`**__Requires input__**`|(Optional) If left empty, the deployment will create the required IAM role. Refer to https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/prerequisites.html for more details|Assign Elastic IP address to client VIP
-(`ClientEIPRequired`)|`Yes`|Choose No to assign client elastic IP address manually after the deployment.
+(`CitrixADCImageID`)|`__Optional__`|(Optional) The AMI ID of the Citrix WAF to be provisioned. If you are opting for pooled license from ADM, enter the latest BYOL AMI ID. If opting for a PAYG subscription license, enter the AMI ID of the Citrix WAF to be provisioned. If left empty, "Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (https://aws.amazon.com/marketplace/pp/B08286P96W)" is provisioned by default.|Citrix WAF IAM role
+(`CitrixADCIAMRole`)|`__Optional__`|(Optional) If left empty, the deployment will create the required IAM role. Refer to https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/prerequisites.html for more details|Assign Elastic IP address to client VIP
+(`ClientEIPRequired`)|`Yes`|Choose No to assign client Elastic IP address manually after the deployment.
 |===
-.Pooled licensing configuration
+.Licensing configuration
 [width="100%",cols="16%,11%,73%",options="header",]
 |===
 |Parameter label (name) |Default value|Description|Pooled license from ADM
-(`PooledLicense`)|`No`|If choosing BYOL option for licensing, choose Yes from dropdown. This would allow you to upload your already purchased licenses. Before choosing Yes, configure Citrix ADM as a license server for the Citrix ADC pooled capacity. Refer to https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server for details.|Citrix ADM IP address
-(`ADMIP`)|`**__Requires input__**`|(Optional) The IP address of the Citrix ADM (deployed either on-prem or as an agent in cloud) reachable from the ADC instances.|Licensing mode
-(`LicensingMode`)|`**__Requires input__**`|(Optional) By default, Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (https://aws.amazon.com/marketplace/pp/B08286P96W) is provisioned. If you are opting for the BYOL license from ADM,
+(`PooledLicense`)|`No`|If choosing BYOL option for licensing, choose Yes. This would allow you to upload your already purchased licenses. Before choosing Yes, configure Citrix ADM as a license server for the Citrix ADC pooled capacity. Refer to https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server for details.|Citrix ADM IP address
+(`ADMIP`)|`__Optional__`|(Optional) The IP address of the Citrix ADM (deployed either on-prem or as an agent in cloud) reachable from the ADC instances.|Licensing mode
+(`LicensingMode`)|`__Optional__`|(Optional) By default, Citrix Web App Firewall (WAF) - 200 Mbps Version 13.0-52.24 (https://aws.amazon.com/marketplace/pp/B08286P96W) is provisioned. If you are opting for the BYOL license from ADM,
   choose Yes for PooledLicense, enter latest BYOL AMI ID in CitrixADCImageID field and choose one of the three licensing modes:
   Pooled-Licensing, Check in Check Out Licensing (CICO-Licensing), CPU-Licensing.|License bandwidth in Mbps
-(`Bandwidth`)|`0`|(Optional) This is used only if the licensing mode is Pooled-Licensing. It allocates an initial bandwidth of the license in Mbps to be allocated after BYOL ADCs are created. Should be multiple of 10 Mbps.|Pooled edition
+(`Bandwidth`)|`0`|(Optional) Specify only if the licensing mode is Pooled-Licensing. It allocates an initial bandwidth of the license in Mbps to be allocated after BYOL ADCs are created. If using, enter a multiple of 10 Mbps.|Pooled edition
 (`PooledEdition`)|`Premium`|(Optional) License edition for pooled capacity licensing mode. This is used only if licensing mode is Pooled-Licensing.|Appliance platform type
-(`Platform`)|`**__Requires input__**`|(Optional) License platform. This is needed only if licensing mode is CICO-Licensing.|vCPU Edition
+(`Platform`)|`__Optional__`|(Optional) Appliance platform type for vCPU licensing mode. When licensing mode is CICO-Licensing, you can choose from the following four options: VPX-200, VPX-1000, VPX-3000, VPX-5000.|vCPU Edition
 (`VCPUEdition`)|`Premium`|(Optional) License edition for vCPU licensing mode. This is needed only if licensing mode is CPU-Licensing.
 |===
 .AWS Quick Start configuration
