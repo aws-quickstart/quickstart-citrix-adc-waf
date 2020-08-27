@@ -1,6 +1,6 @@
 // Replace the content in <>
 // Describe or link to specific knowledge requirements; for example: “familiarity with basic concepts in the areas of networking, database operations, and data encryption” or “familiarity with <software>.”
 
-This Quick Start assumes familiarity with basic networking and Citrix WAF on ADC. Also, if you want to leverage pooled licensing for Citrix ADC, it is assumed that you are well versed with how Citrix ADM manages licensing in a pooled setup.
+This Quick Start assumes familiarity with basic networking and Citrix WAF on ADC. Also, if you want to use pooled licensing for Citrix ADC, be well versed in how Citrix ADM manages licensing in a pooled setup.
 
 

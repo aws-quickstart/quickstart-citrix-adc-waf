@@ -21,9 +21,9 @@ As shown in <<architecture1>>, the Quick Start sets up the following:
    ** An optional Linux bastion host in an Auto Scaling group to allow inbound Secure Shell (SSH) access to Amazon Elastic Compute Cloud (Amazon EC2) instances in public and private subnets.*
    ** An optional Elastic IP address attached to the client network interface of the primary Citrix WAF instance. 
 * In the private subnets, an elastic network interface with a private IP address for the management network interface (NSIP) of the Citrix WAF instance, and an elastic network interface with a private IP address for the server network interface (SNIP) of the Citrix WAF instance.
-* AWS Lambda functions to handle Citrix WAF high availability and load balancing configuration.
-* AWS Identity and Access Management (IAM) role to securely control access to AWS services and resources for your users. By default, the deployment will create the required IAM role. Alternatively, you can provide your own. See https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/prerequisites.html[Prerequisites].
+* AWS Lambda functions to handle Citrix WAF high availability and load-balancing configuration.
+* AWS Identity and Access Management (IAM) role to securely control access to AWS services and resources for your users. By default, the deployment creates the required IAM role. Alternatively, you can provide your own. See https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/prerequisites.html[Prerequisites].
 
 *The template that deploys the Quick Start into an existing VPC skips the components marked by asterisks and prompts you for your existing VPC configuration.
 
-NOTE: Backend servers are not deployed by the Quick Start. If you intend to use the Quick Start for a sandbox deployment, you need to deploy a Linux bastion host in the public subnet (by choosing *Create bastion host*, as documented later). This allows inbound Secure Shell (SSH) access to EC2 instances in public and private subnets. An Elastic IP address is allocated to that bastion host.
+NOTE: Backend servers are not deployed by the Quick Start. If you intend to use the Quick Start for a sandbox deployment, deploy a Linux bastion host in the public subnet (by choosing *Create bastion host*, as documented later). This allows inbound Secure Shell (SSH) access to EC2 instances in public and private subnets. An Elastic IP address is allocated to that bastion host.
