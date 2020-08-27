@@ -4,7 +4,7 @@
 
 *Q.* I encountered a *CREATE_FAILED* error when I launched the Quick Start.
 
-*A.* If AWS CloudFormation fails to create the stack, we recommend that you relaunch the template with *Rollback on failure* set to *No*. (This setting is under *Advanced* in the AWS CloudFormation console, *Options* page.) With this setting, the stack’s state is retained and the instance is left running, so you can troubleshoot the issue. (For Windows, look at the log files in %ProgramFiles%\Amazon\EC2ConfigService and C:\cfn\log.)
+*A.* If AWS CloudFormation fails to create the stack, we recommend that you relaunch the template with *Rollback on failure* set to *Disabled*. (This setting is under *Advanced* in the AWS CloudFormation console, *Options* page.) With this setting, the stack’s state is retained and the instance is left running, so you can troubleshoot the issue. (For Windows, look at the log files in %ProgramFiles%\Amazon\EC2ConfigService and C:\cfn\log.)
 // If you’re deploying on Linux instances, provide the location for log files on Linux, or omit this sentence.
 
 WARNING: When you set *Rollback on failure* to *Disabled*, you continue to incur AWS charges for this stack. Please make sure to delete the stack when you finish troubleshooting.
@@ -17,7 +17,7 @@ For additional information, see https://docs.aws.amazon.com/AWSCloudFormation/la
 
 *Q.* The vserver (`sample_lb_vserver`) is showing as *down*.
 
-*A.* This might be because no backend servers have been deployed. We recommend configuring service and service groups and binding them with the load balancing virtual servers (LB vservers). For more information, see https://docs.citrix.com/en-us/netscaler/12/load-balancing/load-balancing-manage-large-scale-deployment/configure-service-groups.html[Configure service groups].
+*A.* This might be because no backend servers have been deployed. We recommend configuring service and service groups and binding them with the load-balancing virtual servers (LB vservers). For more information, see https://docs.citrix.com/en-us/netscaler/12/load-balancing/load-balancing-manage-large-scale-deployment/configure-service-groups.html[Configure service groups].
 
 *Q.* While testing in my environment, the backend servers in the remote Availability Zone show as *down*.
 

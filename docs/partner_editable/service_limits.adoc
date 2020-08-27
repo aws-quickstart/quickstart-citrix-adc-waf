@@ -7,7 +7,7 @@
 |Elastic IP addresses |2
                        (Optional:
                        +1 for client elastic network interfaces, +1 for bastion host)
-|AWS Identity and Access Management (IAM) security groups |3
+|IAM security groups |3
 |IAM roles |1
 |Subnets |6
           (3 per Availability Zone)
