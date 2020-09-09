@@ -4,7 +4,7 @@
 :xrefstyle: short
 //Moved this line up to precede the figure cross-ref. so that it says "as shown in Figure 1" correctly.
 
-Citrix WAF is a web application firewall that protects web applications and sites from both known and unknown attacks, including application-layer and zero-day threats. Citrix WAF is positioned in front of a web server, monitoring web traffic before it reaches the web application, as shown in <<product1>>.
+Citrix WAF is a firewall that protects web applications and sites from both known and unknown attacks, including application-layer and zero-day threats. Citrix WAF is positioned in front of a web server, monitoring web traffic before it reaches the web application, as shown in <<product1>>.
 
 [#product1]
 .How Citrix WAF works on AWS
