@@ -11,17 +11,22 @@ image::../images/architecture_diagram.png[Architecture,width=648,height=439]
 As shown in <<architecture1>>, the Quick Start sets up the following:
 
 * A highly available architecture that spans two Availability Zones.*
-* A virtual private cloud (VPC) configured with two public and four private subnets, according to AWS best practices, to provide you with your own virtual network on AWS with a /16 Classless Inter-Domain Routing (CIDR) block: a network with 65,536 private IP addresses.*
+* A virtual private cloud (VPC) configured with two public and four private subnets, according to AWS best practices.*
 * An internet gateway attached to the VPC, and route tables associated with public subnets, to allow access to the internet. This gateway is used by the WAF host to send and receive traffic. (The VPN connection and VPN gateway shown here are not deployed as part of the Quick Start; they represent a way to connect to the VPC privately instead.)*
-* Two instances of Citrix WAF (primary and secondary), one in each Availability Zone.
-* Three security groups, one for each network interface (management, client, server), that act as virtual firewalls to control the traffic for their associated instances.
+* Two instances of Citrix WAF (primary and secondary), one in each Availability Zone. Together, these are called the Citrix WAF HA pair.
+* Three security groups (not shown), each spanning the two Availability Zones and acting as a virtual firewall to control the traffic for the WAF instances: 
+   ** A security group for the client network interfaces.
+   ** A security group for the server network interfaces.
+   ** A security group for the management network interfaces.
 * In the public subnets:
-   ** Managed network address translation (NAT) gateways to allow outbound internet access for resources in the private subnets.*
+   ** Managed network address translation (NAT) gateways with associated Elastic IP addresses to allow outbound internet access for resources in the private subnets.*
    ** An elastic network interface for the client network interface (VIP) of the Citrix WAF instance.
-   ** An optional Linux bastion host in an Auto Scaling group to allow inbound Secure Shell (SSH) access to Amazon Elastic Compute Cloud (Amazon EC2) instances in public and private subnets.*
-   ** An optional Elastic IP address attached to the client network interface of the primary Citrix WAF instance. 
-* In the private subnets, an elastic network interface with a private IP address for the management network interface (NSIP) of the Citrix WAF instance, and an elastic network interface with a private IP address for the server network interface (SNIP) of the Citrix WAF instance.
-* AWS Lambda functions to handle Citrix WAF high availability and load-balancing configuration.
+   ** An optional Linux bastion host (not shown) in an Auto Scaling group to allow inbound Secure Shell (SSH) access to Amazon Elastic Compute Cloud (Amazon EC2) instances in public and private subnets.*
+   ** An optional Elastic IP address (not shown) attached to the client network interface of the primary Citrix WAF instance. 
+* In the private subnets (two per Availability Zone): 
+   ** An elastic network interface with a private IP address for the management network interface (NSIP) of the Citrix WAF instance. 
+   ** An elastic network interface with a private IP address for the server network interface (SNIP) of the Citrix WAF instance.
+* AWS Lambda functions to configure Citrix WAF high availability and load balancing.
 * AWS Identity and Access Management (IAM) role to securely control access to AWS services and resources for your users. By default, the deployment creates the required IAM role. Alternatively, you can provide your own. See https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/prerequisites.html[Prerequisites].
 
 *The template that deploys the Quick Start into an existing VPC skips the components marked by asterisks and prompts you for your existing VPC configuration.
