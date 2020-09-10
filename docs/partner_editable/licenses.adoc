@@ -8,7 +8,7 @@ to go for a higher throughput (such as > 5 Gbps). These are https://docs.citrix.
 that are used with Citrix Application Delivery Management (ADM). In AWS Marketplace, the BYOL options for the Citrix WAF AMI are called
 https://aws.amazon.com/marketplace/pp/B00AA01BOE[Citrix ADC VPX - Customer Licensed]. To use the BYOL model, you must have an AppFW feature enabled and must
 https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server[configure Citrix ADM as a licensing server].
-Whether you deploy Citrix ADM on premises or as an agent in the cloud, you must use a reachable ADM IP as an input parameter when deploying the Quick Start. +
+Whether you deploy Citrix ADM on premises or as an agent in the cloud, you must use a reachable ADM IP address as an input parameter when deploying the Quick Start. +
  +
 With the BYOL model, you choose one of the three modes:
 ** https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server[Pooled licensing]: With this mode, you can share bandwidth or instance licenses across ADC form factors and instances.

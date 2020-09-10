@@ -889,7 +889,7 @@ collaborated with AWS on the content of the Quick Start.
 <h2 id="_citrix_web_app_firewall_waf_on_aws">Citrix Web App Firewall (WAF) on AWS</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Citrix WAF is a web application firewall that protects web applications and sites from both known and unknown attacks, including application-layer and zero-day threats. Citrix WAF is positioned in front of a web server, monitoring web traffic before it reaches the web application, as shown in <a href="#product1">Figure 1</a>.</p>
+<p>Citrix WAF is a firewall that protects web applications and sites from both known and unknown attacks, including application-layer and zero-day threats. Citrix WAF is positioned in front of a web server, monitoring web traffic before it reaches the web application, as shown in <a href="#product1">Figure 1</a>.</p>
 </div>
 <div id="product1" class="imageblock">
 <div class="content">
@@ -969,7 +969,7 @@ to go for a higher throughput (such as &gt; 5 Gbps). These are <a href="https://
 that are used with Citrix Application Delivery Management (ADM). In AWS Marketplace, the BYOL options for the Citrix WAF AMI are called
 <a href="https://aws.amazon.com/marketplace/pp/B00AA01BOE">Citrix ADC VPX - Customer Licensed</a>. To use the BYOL model, you must have an AppFW feature enabled and must
 <a href="https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server">configure Citrix ADM as a licensing server</a>.
-Whether you deploy Citrix ADM on premises or as an agent in the cloud, you must use a reachable ADM IP as an input parameter when deploying the Quick Start.<br>
+Whether you deploy Citrix ADM on premises or as an agent in the cloud, you must use a reachable ADM IP address as an input parameter when deploying the Quick Start.<br>
 <br>
 With the BYOL model, you choose one of the three modes:</p>
 <div class="ulist">
@@ -1013,41 +1013,64 @@ AWS Cloud.</p>
 <p>A highly available architecture that spans two Availability Zones.*</p>
 </li>
 <li>
-<p>A virtual private cloud (VPC) configured with two public and four private subnets, according to AWS best practices, to provide you with your own virtual network on AWS with a /16 Classless Inter-Domain Routing (CIDR) block: a network with 65,536 private IP addresses.*</p>
+<p>A virtual private cloud (VPC) configured with two public and four private subnets, according to AWS best practices.*</p>
 </li>
 <li>
 <p>An internet gateway attached to the VPC, and route tables associated with public subnets, to allow access to the internet. This gateway is used by the WAF host to send and receive traffic. (The VPN connection and VPN gateway shown here are not deployed as part of the Quick Start; they represent a way to connect to the VPC privately instead.)*</p>
 </li>
 <li>
-<p>Two instances of Citrix WAF (primary and secondary), one in each Availability Zone.</p>
+<p>Two instances of Citrix WAF (primary and secondary), one in each Availability Zone. Together, these are called the Citrix WAF HA pair.</p>
 </li>
 <li>
-<p>Three security groups, one for each network interface (management, client, server), that act as virtual firewalls to control the traffic for their associated instances.</p>
+<p>Three security groups (not shown), each spanning the two Availability Zones and acting as a virtual firewall to control the traffic for the WAF instances:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>A security group for the client network interfaces.</p>
+</li>
+<li>
+<p>A security group for the server network interfaces.</p>
+</li>
+<li>
+<p>A security group for the management network interfaces.</p>
+</li>
+</ul>
+</div>
 </li>
 <li>
 <p>In the public subnets:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Managed network address translation (NAT) gateways to allow outbound internet access for resources in the private subnets.*</p>
+<p>Managed network address translation (NAT) gateways with associated Elastic IP addresses to allow outbound internet access for resources in the private subnets.*</p>
 </li>
 <li>
 <p>An elastic network interface for the client network interface (VIP) of the Citrix WAF instance.</p>
 </li>
 <li>
-<p>An optional Linux bastion host in an Auto Scaling group to allow inbound Secure Shell (SSH) access to Amazon Elastic Compute Cloud (Amazon EC2) instances in public and private subnets.*</p>
+<p>An optional Linux bastion host (not shown) in an Auto Scaling group to allow inbound Secure Shell (SSH) access to Amazon Elastic Compute Cloud (Amazon EC2) instances in public and private subnets.*</p>
 </li>
 <li>
-<p>An optional Elastic IP address attached to the client network interface of the primary Citrix WAF instance. </p>
+<p>An optional Elastic IP address (not shown) attached to the client network interface of the primary Citrix WAF instance. </p>
 </li>
 </ul>
 </div>
 </li>
 <li>
-<p>In the private subnets, an elastic network interface with a private IP address for the management network interface (NSIP) of the Citrix WAF instance, and an elastic network interface with a private IP address for the server network interface (SNIP) of the Citrix WAF instance.</p>
+<p>In the private subnets (two per Availability Zone):</p>
+<div class="ulist">
+<ul>
+<li>
+<p>An elastic network interface with a private IP address for the management network interface (NSIP) of the Citrix WAF instance.</p>
 </li>
 <li>
-<p>AWS Lambda functions to handle Citrix WAF high availability and load-balancing configuration.</p>
+<p>An elastic network interface with a private IP address for the server network interface (SNIP) of the Citrix WAF instance.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>AWS Lambda functions to configure Citrix WAF high availability and load balancing.</p>
 </li>
 <li>
 <p>AWS Identity and Access Management (IAM) role to securely control access to AWS services and resources for your users. By default, the deployment creates the required IAM role. Alternatively, you can provide your own. See <a href="https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/prerequisites.html">Prerequisites</a>.</p>
@@ -1255,7 +1278,7 @@ Certain Regions are available on an opt-in basis. Refer to the AWS Documentation
 <p>Sign in to your AWS account.</p>
 </li>
 <li>
-<p>For PAYG model, you can choose one of the following AWS Marketplace AMIs: <a href="https://aws.amazon.com/marketplace/pp/B08286P96W?qid=1580407778935&amp;sr=0-9&amp;ref_=srh_res_product_title">Citrix WAF 200 Mbps</a> and <a href="https://aws.amazon.com/marketplace/pp/B08284R8P6?qid=1580407778935&amp;sr=0-10&amp;ref_=srh_res_product_title">Citrix WAF 1000 Mbps</a>. For BYOL model, refer to the <a href="#_software_licenses">Software licenses</a> section to see the available options. To retrieve the AMI ID, see <a href="https://github.com/citrix/citrix-adc-aws-cloudformation/blob/master/templates/README.md">Citrix Products on AWS Marketplace</a> on GitHub.</p>
+<p>For the PAYG model, you can choose one of the following AWS Marketplace AMIs: <a href="https://aws.amazon.com/marketplace/pp/B08286P96W?qid=1580407778935&amp;sr=0-9&amp;ref_=srh_res_product_title">Citrix WAF 200 Mbps</a> or <a href="https://aws.amazon.com/marketplace/pp/B08284R8P6?qid=1580407778935&amp;sr=0-10&amp;ref_=srh_res_product_title">Citrix WAF 1000 Mbps</a>. For the BYOL model, refer to the <a href="#_software_licenses">Software licenses</a> section to see the available options. To retrieve the AMI ID, see <a href="https://github.com/citrix/citrix-adc-aws-cloudformation/blob/master/templates/README.md">Citrix Products on AWS Marketplace</a> on GitHub.</p>
 </li>
 <li>
 <p>On the desired AWS Marketplace page, choose <strong>Continue to Subscribe.</strong></p>
@@ -2309,7 +2332,7 @@ and to share your customizations with others.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-09-04 01:50:48 UTC
+Last updated 2020-09-10 03:15:46 UTC
 </div>
 </div>
 </body>
