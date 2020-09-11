@@ -4,4 +4,4 @@
 
 This Quick Start reference deployment guide provides step-by-step instructions for deploying {partner-product-short-name} for high availability (HA) on the AWS Cloud.
 
-This Quick Start is for users who want to mitigate threats to public or internal web assets running on AWS. Use this Quick Start to build and test a proof of concept or to create a production-ready solution with a highly available deployment of Citrix WAF as a front end for your web applications.
+This Quick Start is for users who want to mitigate threats to public or internal web assets running on AWS. Use this Quick Start to build and test a proof of concept or to create a highly available production-ready deployment of Citrix WAF as a front end for your web applications.
