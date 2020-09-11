@@ -27,7 +27,7 @@ As shown in <<architecture1>>, the Quick Start sets up the following:
    ** An elastic network interface with a private IP address for the management network interface (NSIP) of the Citrix WAF instance. 
    ** An elastic network interface with a private IP address for the server network interface (SNIP) of the Citrix WAF instance.
 * AWS Lambda functions to configure Citrix WAF high availability and load balancing.
-* AWS Identity and Access Management (IAM) role to securely control access to AWS services and resources for your users. By default, the deployment creates the required IAM role. Alternatively, you can provide your own. See https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/prerequisites.html[Prerequisites].
+* An AWS Identity and Access Management (IAM) role to securely control access to AWS services and resources for your users. By default, the deployment creates the required IAM role. Alternatively, you can provide your own. See https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/prerequisites.html[Prerequisites].
 
 *The template that deploys the Quick Start into an existing VPC skips the components marked by asterisks and prompts you for your existing VPC configuration.
 
