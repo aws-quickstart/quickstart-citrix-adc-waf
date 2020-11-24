@@ -1,4 +1,4 @@
-## Citrix Web App Firewall (WAF) on the AWS Cloud—Quick Start
+## Citrix Web App Firewall on the AWS Cloud—Quick Start
 
 For architectural details, step-by-step instructions, and customization options, see the [deployment guide](https://fwd.aws/k7Xk9).
 

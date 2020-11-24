@@ -1,5 +1,5 @@
 :quickstart-project-name: quickstart-citrix-adc-waf
-:partner-product-name: Citrix Web App Firewall (WAF)
+:partner-product-name: Citrix Web App Firewall
 :partner-product-short-name: Citrix WAF
 :partner-company-name: Citrix Systems, Inc.
 :doc-month: August
