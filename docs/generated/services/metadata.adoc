@@ -19,6 +19,7 @@
 :template_custom_lambdahaaz:
 :template_custom_lambdawaf:
 :template_custom_serversactiveactive:
+:template_deterministic_ec2_instances:
 :template_ec2:
 :template_iam:
 :template_lambda:

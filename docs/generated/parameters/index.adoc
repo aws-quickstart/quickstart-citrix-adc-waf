@@ -1,6 +1,6 @@
 
-=== Parameters for launching into a new VPC
-include::citrix-adc-waf-main.template.adoc[]
-
 === Parameters for launching into an existing VPC
 include::citrix-adc-waf-workload.template.adoc[]
+
+=== Parameters for launching into a new VPC
+include::citrix-adc-waf-main.template.adoc[]
