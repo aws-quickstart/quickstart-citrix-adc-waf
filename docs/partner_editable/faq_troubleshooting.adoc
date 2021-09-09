@@ -4,21 +4,25 @@
 
 *Q.* I encountered a *CREATE_FAILED* error when I launched the Quick Start.
 
-*A.* If AWS CloudFormation fails to create the stack, we recommend that you relaunch the template with *Rollback on failure* set to *Disabled*. (This setting is under *Advanced* in the AWS CloudFormation console, *Options* page.) With this setting, the stack’s state is retained and the instance is left running, so you can troubleshoot the issue. (For Windows, look at the log files in %ProgramFiles%\Amazon\EC2ConfigService and C:\cfn\log.)
-// If you’re deploying on Linux instances, provide the location for log files on Linux, or omit this sentence.
+*A.* If AWS CloudFormation fails to create the stack, relaunch the template with *Rollback on failure* set to *Disabled*. This setting is under *Advanced* in the AWS CloudFormation console on the *Configure stack options* page. With this setting, the stack’s state is retained, and the instance keeps running so that you can troubleshoot the issue. (For Windows, look at the log files in `%ProgramFiles%\Amazon\EC2ConfigService` and `C:\cfn\log`.)
+// Customize this answer if needed. For example, if you’re deploying on Linux instances, either provide the location for log files on Linux or omit the final sentence. If the Quick Start has no EC2 instances, revise accordingly (something like "and the assets keep running").
 
-WARNING: When you set *Rollback on failure* to *Disabled*, you continue to incur AWS charges for this stack. Please make sure to delete the stack when you finish troubleshooting.
+WARNING: When you set *Rollback on failure* to *Disabled*, you continue to incur AWS charges for this stack. Delete the stack when you finish troubleshooting.
 
-For additional information, see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html[Troubleshooting AWS CloudFormation^] on the AWS website.
+For more information, see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html[Troubleshooting AWS CloudFormation^].
 
-*Q.* I encountered a size limitation error when I deployed the AWS CloudFormation templates.
+//Use these three apostrophes above each new question to create a dividing line. This helps people skim for the questions relevant to them, especially as the number and length of Qs & As increases.
+'''
+*Q.* I encountered a size-limitation error when I deployed the AWS CloudFormation templates.
 
-*A.* We recommend that you launch the Quick Start templates from the links in this guide or from another S3 bucket. If you deploy the templates from a local copy on your computer or from a location other than an S3 bucket, you might encounter template size limitations. For more information about AWS CloudFormation quotas, see the http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html[AWS documentation^].
+*A.* Launch the Quick Start templates from the links in this guide or from another S3 bucket. If you deploy the templates from a local copy on your computer or from a location other than an S3 bucket, you might encounter template-size limitations. For more information, see http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html[AWS CloudFormation quotas^].
 
+'''
 *Q.* The vserver (`sample_lb_vserver`) is showing as *down*.
 
 *A.* This might be because no backend servers have been deployed. We recommend configuring service and service groups and binding them with the load-balancing virtual servers (LB vservers). For more information, see https://docs.citrix.com/en-us/netscaler/12/load-balancing/load-balancing-manage-large-scale-deployment/configure-service-groups.html[Configure service groups].
 
+'''
 *Q.* While testing in my environment, the backend servers in the remote Availability Zone show as *down*.
 
 *A.* Try one of the following options:
@@ -26,14 +30,15 @@ For additional information, see https://docs.aws.amazon.com/AWSCloudFormation/la
 * Add a static route to the remote Availability Zone server subnet by specifying the subnet IP address (SNIP) as the next hop. For more information, see https://docs.citrix.com/en-us/netscaler/12/networking/ip-routing/configuring-static-routes.html[Configuring static routes].
 * Change the subnet mask so that subnets in both Availability Zones are accommodated.
 
+'''
 *Q.* I get the error “FAIL: Could not add licenseserver.”
 
 *A.* You probably selected *Yes* when prompted, “Do you want to allocate license from ADM?” and then provided incorrect ADM/Agent IP, which is not reachable. To solve the issue, configure your management interface in such a way that you get access to the endpoints via NAT gateway and associate this NAT gateway with the management subnet (if not already done) in both the Availability Zones, or separate VPC endpoints for S3 and EC2 need to be configured.
 
+'''
 *Q.* I get this error: Failed to create resource. See the details in CloudWatch Log Stream: HTTPSConnectionPool(host=’’, port=443): Max retries exceeded with url: /nitro/v1/config/route (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at ‘’>: Failed to establish a new connection: [Errno 110] Connection timed out',))`
 
 *A.* This could be due to an existing VPC deployment when amazonaws endpoints (http://ec2.amazonaws.com/[ec2.amazonaws.com] and http://s3.amazonaws.com/[s3.amazonaws.com]) are not reachable. As a resolution, create a NAT gateway in the public subnet and thereby associate this NAT gateway with the management subnet (if not already done) in both the Availability Zones.
-
 
 
 == Additional resources
