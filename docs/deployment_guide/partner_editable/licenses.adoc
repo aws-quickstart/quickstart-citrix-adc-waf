@@ -1,3 +1,18 @@
 // Include details about any licenses and how to sign up. Provide links as appropriate.
 
+There are two license models for the Citrix WAF Amazon Machine Image (AMI):
+
+* *Pay-as-you-go (PAYG) subscription-based* *model for production* *licenses:* This model is restricted to a specific bandwidth and other performance metrics based on the license edition that the listing is bound to. In AWS Marketplace, the PAYG options for the Citrix WAF AMI are called “Citrix Web App Firewall (WAF).” You can choose from two throughput options: https://aws.amazon.com/marketplace/pp/B08286P96W?qid=1580407778935&sr=0-9&ref_=srh_res_product_title[200 Mbps] or https://aws.amazon.com/marketplace/pp/B08284R8P6?qid=1580407778935&sr=0-10&ref_=srh_res_product_title[1000 Mbps].
+* *Bring-your-own-license (BYOL) model:* This model applies if you have purchased a license through other channels. You need this type of license to dynamically modify the bandwidth—that is,
+to go for a higher throughput (such as > 5 Gbps). These are https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity.html[pooled-capacity licenses]
+that are used with Citrix Application Delivery Management (ADM). In AWS Marketplace, the BYOL options for the Citrix WAF AMI are called
+https://aws.amazon.com/marketplace/pp/B00AA01BOE[Citrix ADC VPX - Customer Licensed]. To use the BYOL model, you must have an AppFW feature enabled and must
+https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server[configure Citrix ADM as a licensing server].
+Whether you deploy Citrix ADM on premises or as an agent in the cloud, you must use a reachable ADM IP address as an input parameter when deploying the Partner Solution. +
+ +
+With the BYOL model, you choose one of the three modes:
+** https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-pooled-capacity/configuring-adc-pooled-capacity.html#configure-citrix-adm-as-a-license-server[Pooled licensing]: With this mode, you can share bandwidth or instance licenses across ADC form factors and instances.
+** https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-vpx-check-in-check-out.html[Check-in-check-out (CICO)]: With this mode, you choose between VPX-200, VPX-1000, VPX-3000, and VPX-5000 application platform types. Make sure that you have the same throughput license in your ADM licensing server.
+** https://docs.citrix.com/en-us/citrix-application-delivery-management-software/13/license-server/adc-virtual-cpu-licensing.html[Virtual CPU (vCPU) usage-based licensing]: This mode has a specified number of CPUs that a particular Citrix WAF is entitled to.
+
 There is no cost to use this Partner Solution, but you will be billed for any AWS services or resources that this Partner Solution deploys. For more information, refer to the https://fwd.aws/rA69w?[AWS Partner Solution General Information Guide^].
