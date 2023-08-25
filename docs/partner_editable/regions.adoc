@@ -1,1 +1,0 @@
-This deployment includes Citrix WAF, which isn’t currently supported in all AWS Regions. For a current list of supported Regions, see https://docs.citrix.com/en-us/citrix-adc/13/deploying-vpx/deploy-aws/vpx-aws-support-matrix.html[VPX-AWS support matrix] in the Citrix documentation.
